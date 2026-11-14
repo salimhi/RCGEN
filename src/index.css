@@ -1,0 +1,250 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg: #f4eee3;
+  --color-bg-tint: #efe7d8;
+  --color-surface: #fffcf6;
+  --color-surface-2: #f3ecde;
+  --color-border: #e4dac8;
+  --color-border-strong: #d6c9b2;
+  --color-ink: #18241f;
+  --color-text: #232a24;
+  --color-text-muted: #6e6557;
+  --color-text-soft: #8a8071;
+  --color-primary: #d26c45;
+  --color-primary-strong: #b85733;
+  --color-primary-soft: rgba(210, 108, 69, 0.13);
+  --color-accent: #2e5848;
+  --color-accent-soft: rgba(46, 88, 72, 0.11);
+  --color-correct: #2f7d54;
+  --color-correct-soft: rgba(47, 125, 84, 0.13);
+  --color-wrong: #c0512f;
+  --color-wrong-soft: rgba(192, 81, 47, 0.13);
+  --color-warn: #b7791f;
+  --color-warn-soft: rgba(183, 121, 31, 0.15);
+  --color-thread-1: #3b6fb6;
+  --color-thread-1-soft: rgba(59, 111, 182, 0.18);
+  --color-thread-2: #9a4fb0;
+  --color-thread-2-soft: rgba(154, 79, 176, 0.18);
+  --color-gold: #d8a237;
+  --shadow-soft: 0 1px 2px rgba(31, 26, 17, 0.04), 0 8px 24px rgba(31, 26, 17, 0.06);
+  --shadow-lift: 0 2px 4px rgba(31, 26, 17, 0.06), 0 18px 50px rgba(31, 26, 17, 0.12);
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --color-bg: #101513;
+  --color-bg-tint: #171e1b;
+  --color-surface: #151b18;
+  --color-surface-2: #1d2521;
+  --color-border: #2b3832;
+  --color-border-strong: #3a4a42;
+  --color-ink: #ecf3eb;
+  --color-text: #e5ece6;
+  --color-text-muted: #aab6ad;
+  --color-text-soft: #7f8e84;
+  --color-primary: #df7f58;
+  --color-primary-strong: #f09b77;
+  --color-primary-soft: rgba(223, 127, 88, 0.16);
+  --color-accent: #8ac2a7;
+  --color-accent-soft: rgba(138, 194, 167, 0.14);
+  --color-correct: #73c996;
+  --color-correct-soft: rgba(115, 201, 150, 0.15);
+  --color-wrong: #f08b6d;
+  --color-wrong-soft: rgba(240, 139, 109, 0.15);
+  --color-warn: #e6b45a;
+  --color-warn-soft: rgba(230, 180, 90, 0.16);
+  --color-thread-1: #8fb4ec;
+  --color-thread-1-soft: rgba(143, 180, 236, 0.2);
+  --color-thread-2: #d09ae0;
+  --color-thread-2-soft: rgba(208, 154, 224, 0.2);
+  --color-gold: #f2c35b;
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.24), 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.28), 0 18px 50px rgba(0, 0, 0, 0.36);
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.rc-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
+}
+
+.rc-card-elevated {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lift);
+}
+
+.rc-surface-2 {
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+}
+
+.rc-btn-primary {
+  background-color: var(--color-primary);
+  color: #fffcf6;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.16s ease;
+}
+
+[data-theme="dark"] .rc-btn-primary {
+  color: #16110d;
+}
+
+.rc-btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-strong);
+  transform: translateY(-1px);
+}
+
+.rc-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rc-btn-secondary {
+  background-color: var(--color-surface-2);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border-strong);
+  font-weight: 500;
+  border-radius: 12px;
+  transition: all 0.16s ease;
+}
+
+.rc-btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.rc-chip {
+  background-color: var(--color-surface-2);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  transition: all 0.15s ease;
+}
+
+.rc-chip:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-ink);
+}
+
+.rc-chip-active {
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.passage-prose {
+  font-family: var(--font-display);
+  font-size: var(--passage-font-size, 19.5px);
+  line-height: 1.7;
+  letter-spacing: -0.003em;
+  text-align: left;
+  max-width: 70ch;
+  color: var(--color-text);
+}
+
+.passage-prose p {
+  margin-bottom: 22px;
+  text-indent: 0;
+  text-align: left;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.passage-prose p:last-child {
+  margin-bottom: 0;
+}
+
+.passage-prose mark {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+[data-theme="dark"] .passage-prose {
+  color: #e9e4d8 !important;
+}
+
+[data-theme="dark"] .passage-prose mark {
+  color: #e9e4d8 !important;
+}
+
+/* Custom subtle scrollbars for split-screen exam reader */
+.exam-scroll::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+.exam-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.exam-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+/* Question Generation Animations */
+@keyframes rc-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.rc-skeleton-shimmer {
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-border) 50%, var(--color-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: rc-shimmer 2s infinite ease-in-out;
+}
+
+@keyframes rc-sweep {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  75% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(350%);
+    opacity: 0;
+  }
+}
+
+.rc-scanner-beam {
+  animation: rc-sweep 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rc-skeleton-shimmer,
+  .rc-scanner-beam {
+    animation: none !important;
+  }
+}
