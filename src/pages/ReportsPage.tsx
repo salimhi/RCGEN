@@ -1,32 +1,36 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, Clock, Target, TrendingUp, ArrowRight, UserCheck } from 'lucide-react';
+import { BarChart3, Clock, Target, TrendingUp, ArrowRight } from 'lucide-react';
 import type { RCAttempt } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { useProfile } from '../contexts/ProfileContext';
+import { getAttempts } from '../lib/storage';
+import { getTest } from '../lib/testStore';
+
+const KNOWN_ARCHETYPES = new Set([
+  'Main Idea',
+  'Inference',
+  'Paragraph Function',
+  'Tone & Attitude',
+  'Strengthen / Weaken',
+  'Detail & Logic',
+  'Vocabulary in Context'
+]);
 
 export default function ReportsPage() {
-  const { user, displayName, guestId } = useAuth();
+  const { displayName } = useProfile();
   const [attempts, setAttempts] = useState<RCAttempt[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadReports = async () => {
-      setLoading(true);
-      try {
-        const uid = user?.id || guestId;
-        const res = await fetch(`/api/attempts?user_id=${encodeURIComponent(uid)}`);
-        if (res.ok) {
-          const data: RCAttempt[] = await res.json();
-          setAttempts(data);
-        }
-      } catch (err) {
-        console.error('Reports fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadReports();
-  }, [user?.id, guestId]);
+    try {
+      const data = getAttempts();
+      setAttempts(data);
+    } catch (err) {
+      console.error('Reports load error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const analytics = useMemo(() => {
     if (attempts.length === 0) return null;
@@ -47,10 +51,11 @@ export default function ReportsPage() {
 
       if (Array.isArray(a.type_breakdown)) {
         for (const tb of a.type_breakdown) {
-          const cur = typeMap.get(tb.type) || { correct: 0, total: 0 };
-          cur.correct += tb.correct;
-          cur.total += tb.total;
-          typeMap.set(tb.type, cur);
+          const typeName = tb?.type && KNOWN_ARCHETYPES.has(tb.type) ? tb.type : 'Other';
+          const cur = typeMap.get(typeName) || { correct: 0, total: 0 };
+          cur.correct += Number(tb.correct || 0);
+          cur.total += Number(tb.total || 0);
+          typeMap.set(typeName, cur);
         }
       }
     }
@@ -101,19 +106,9 @@ export default function ReportsPage() {
             {displayName}&apos;s VARC Report Card
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
-            Track net score trajectory, reading pace, and accuracy across RC question archetypes.
+            100% private in this browser. Track net score trajectory, reading pace, and accuracy across RC question archetypes.
           </p>
         </div>
-
-        {!user && (
-          <Link
-            to="/login"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold rc-btn-secondary self-start"
-          >
-            <UserCheck className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
-            <span>Sign in to sync across devices</span>
-          </Link>
-        )}
       </div>
 
       {loading ? (
@@ -127,7 +122,7 @@ export default function ReportsPage() {
             No completed RC sets yet
           </h2>
           <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--color-text-muted)' }}>
-            Take a sample passage from the Library, enter today&apos;s Live Arena, or paste an article to unlock question-type accuracy diagnostics.
+            Take a passage from the Library or generate a test from any article to unlock question-type accuracy diagnostics.
           </p>
           <div className="flex justify-center gap-3 pt-2">
             <Link to="/" className="px-5 py-2.5 rounded-xl text-sm font-semibold rc-btn-primary">
@@ -265,14 +260,18 @@ export default function ReportsPage() {
                   {attempts.map((att) => {
                     const attempted = att.correct_count + att.wrong_count;
                     const acc = attempted > 0 ? Math.round((att.correct_count / attempted) * 100) : 0;
+                    const loadedTest = getTest(att.test_id);
+                    const title = att.rc_tests?.title || loadedTest?.title || `RC Test #${att.test_id}`;
+                    const topic = att.rc_tests?.topic || loadedTest?.topic || 'Reading Comprehension';
+
                     return (
                       <tr key={att.id}>
                         <td className="py-3.5 px-4">
                           <div className="font-semibold" style={{ color: 'var(--color-ink)' }}>
-                            {att.rc_tests?.title || `RC Test #${att.test_id}`}
+                            {title}
                           </div>
                           <div className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
-                            {att.rc_tests?.topic || 'Reading Comprehension'}
+                            {topic}
                           </div>
                         </td>
                         <td className="py-3.5 px-4 text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>

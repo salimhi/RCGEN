@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import GeneratingOverlay from '../components/GeneratingOverlay';
+import GeneratingOverlay, { type GenerationStage } from '../components/GeneratingOverlay';
+import ProfileModal from '../components/ProfileModal';
 import {
   Sparkles,
   FileText,
@@ -9,14 +10,19 @@ import {
   ArrowRight,
   Clock,
   CheckCircle2,
-  Flame,
   Sliders,
   AlertCircle,
   Trophy,
-  Star
+  Star,
+  Cpu,
+  Key
 } from 'lucide-react';
 import type { RCTest, ExamType, DifficultyLevel } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { useProfile } from '../contexts/ProfileContext';
+import { getAllLibraryTests, computeWordCount } from '../lib/testStore';
+import { saveCustomTest, generateCustomTestId } from '../lib/storage';
+import { generateRcQuestions } from '../lib/geminiClient';
+import { normalizeParagraphs, detectTopic } from '../lib/ruleGenerator';
 
 const SAMPLE_PRESETS = [
   {
@@ -27,7 +33,7 @@ const SAMPLE_PRESETS = [
   {
     label: 'Global Trade & Resilience (Economist style)',
     title: 'Why Just-in-Time Efficiency Priced Risk Out of Sight',
-    text: `For three decades, corporate strategists treated inventory buffers and redundant suppliers as confessions of managerial sloth. Lean supply chains promised a straightforward dividend: eliminate idle stock, concentrate production where unit costs were lowest, and recycle freed capital into shareholder returns or research. Judged by quarterly operating margins during years of geopolitical calm, the doctrine delivered handsomely.\n\nWhat the balance sheet recorded as pure efficiency gain, however, was in substantial measure an unbooked transfer of tail risk. Redundancy looks wasteful only when shocks are independent and short-lived. In tightly coupled networks where dozens of downstream assemblers rely on a single specialized fabrication node, local disruptions propagate nonlinearly rather than averaging out. Individual firms captured the certain daily savings of leanness while externalizing vulnerability across the wider economy.\n\nCritics sometimes conclude that globalization itself was a mistake and that domestic self-sufficiency offers a straightforward cure. Yet autarky confuses geographic proximity with structural resilience. Concentrating every stage of production inside one border merely exposes a nation to domestic weather, labour bottlenecks, or regulatory missteps without diversified external fallbacks.\n\nThe harder task for policymakers and boards alike is learning to price insurance before a crisis makes its value obvious. Markets excel atarbitraging visible unit-cost spreads; they are notoriously poor at rewarding executives who spend money today to soften a disruption that may arrive only once a decade.`
+    text: `For three decades, corporate strategists treated inventory buffers and redundant suppliers as confessions of managerial sloth. Lean supply chains promised a straightforward dividend: eliminate idle stock, concentrate production where unit costs were lowest, and recycle freed capital into shareholder returns or research. Judged by quarterly operating margins during years of geopolitical calm, the doctrine delivered handsomely.\n\nWhat the balance sheet recorded as pure efficiency gain, however, was in substantial measure an unbooked transfer of tail risk. Redundancy looks wasteful only when shocks are independent and short-lived. In tightly coupled networks where dozens of downstream assemblers rely on a single specialized fabrication node, local disruptions propagate nonlinearly rather than averaging out. Individual firms captured the certain daily savings of leanness while externalizing vulnerability across the wider economy.\n\nCritics sometimes conclude that globalization itself was a mistake and that domestic self-sufficiency offers a straightforward cure. Yet autarky confuses geographic proximity with structural resilience. Concentrating every stage of production inside one border merely exposes a nation to domestic weather, labour bottlenecks, or regulatory missteps without diversified external fallbacks.\n\nThe harder task for policymakers and boards alike is learning to price insurance before a crisis makes its value obvious. Markets excel at arbitraging visible unit-cost spreads; they are notoriously poor at rewarding executives who spend money today to soften a disruption that may arrive only once a decade.`
   }
 ];
 
@@ -47,38 +53,25 @@ const TOPIC_CATEGORIES = [
   'Literature & Aesthetics'
 ];
 
-function quickDetectTopic(text: string): string {
-  const lower = text.toLowerCase();
-  const lexicon: Record<string, string[]> = {
-    'Philosophy': ['epistemology', 'moral', 'ethics', 'consciousness', 'truth', 'reason', 'rationality', 'mind', 'metaphysics', 'virtue', 'justice', 'self', 'agency', 'philosopher', 'scepticism', 'stoic'],
-    'Economics & Social Theory': ['market', 'economy', 'capital', 'price', 'labour', 'labor', 'inequality', 'institution', 'incentive', 'trade', 'commodity', 'growth', 'policy', 'wealth', 'social', 'public'],
-    'Science & Evolution': ['evolution', 'species', 'biology', 'genetic', 'organism', 'adaptation', 'brain', 'quantum', 'climate', 'ecology', 'physics', 'experiment', 'hypothesis', 'cell', 'selection'],
-    'History & Culture': ['century', 'empire', 'colonial', 'archive', 'historian', 'medieval', 'ancient', 'tradition', 'ritual', 'monument', 'civilisation', 'civilization', 'revolution', 'dynasty'],
-    'Technology & AI': ['algorithm', 'digital', 'platform', 'software', 'machine', 'artificial', 'intelligence', 'automation', 'data', 'network', 'computation', 'model', 'tech', 'interface'],
-    'Literature & Aesthetics': ['novel', 'poetry', 'narrative', 'aesthetic', 'art', 'fiction', 'author', 'reader', 'literary', 'language', 'metaphor', 'translation', 'painting', 'music', 'critic']
-  };
-  let best = 'Philosophy';
-  let bestScore = -1;
-  for (const [topic, words] of Object.entries(lexicon)) {
-    let score = 0;
-    for (const w of words) {
-      const matches = lower.match(new RegExp(`\\b${w}`, 'gi'));
-      if (matches) score += matches.length;
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      best = topic;
-    }
-  }
-  return best;
-}
-
 export default function HomePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, guestId } = useAuth();
+  const {
+    geminiKey,
+    hasGeminiKey,
+    geminiModel,
+    groqKey,
+    hasGroqKey,
+    groqModel,
+    useGroq,
+    doubleCheck,
+    setDoubleCheck
+  } = useProfile();
 
   const [inputMode, setInputMode] = useState<'paste' | 'url' | 'library'>('paste');
+  const [engine, setEngine] = useState<'gemini' | 'algorithm'>('algorithm');
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+
   const [pastedTitle, setPastedTitle] = useState('');
   const [pastedText, setPastedText] = useState('');
   const [pastedTopic, setPastedTopic] = useState<string>('Philosophy');
@@ -91,17 +84,26 @@ export default function HomePage() {
   const [focusMode, setFocusMode] = useState<string>('Balanced Exam Mix');
 
   const [generating, setGenerating] = useState(false);
+  const [genStage, setGenStage] = useState<GenerationStage>('reading');
   const [genStepIdx, setGenStepIdx] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [libraryTests, setLibraryTests] = useState<RCTest[]>([]);
-  const [liveTest, setLiveTest] = useState<RCTest | null>(null);
   const [featuredSample, setFeaturedSample] = useState<RCTest | null>(null);
   const [loadingTests, setLoadingTests] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState('All');
 
   // Inline quick-check state for embedded sample question preview on homepage
   const [previewSelected, setPreviewSelected] = useState<string | null>(null);
+
+  // Automatically switch engine to gemini if key is added, or algorithm if no key
+  useEffect(() => {
+    if (hasGeminiKey) {
+      setEngine('gemini');
+    } else {
+      setEngine('algorithm');
+    }
+  }, [hasGeminiKey]);
 
   useEffect(() => {
     const qExam = searchParams.get('exam');
@@ -111,34 +113,17 @@ export default function HomePage() {
   }, [searchParams]);
 
   useEffect(() => {
-    const loadHomeData = async () => {
-      try {
-        const [testsRes, liveRes] = await Promise.all([
-          fetch('/api/tests'),
-          fetch('/api/live')
-        ]);
-        if (testsRes.ok) {
-          const allTests: RCTest[] = await testsRes.json();
-          const lib = allTests.filter((t) => t.category === 'library');
-          setLibraryTests(lib);
-          const sample =
-            allTests.find((t) => t.slug === 'the-attention-economy-cat-sample') ||
-            lib[0] ||
-            allTests[0] ||
-            null;
-          setFeaturedSample(sample);
-        }
-        if (liveRes.ok) {
-          const liveData = await liveRes.json();
-          setLiveTest(liveData.activeTest || null);
-        }
-      } catch (err) {
-        console.error('Home fetch error:', err);
-      } finally {
-        setLoadingTests(false);
+    try {
+      const lib = getAllLibraryTests();
+      setLibraryTests(lib);
+      if (lib.length > 0) {
+        setFeaturedSample(lib[0]);
       }
-    };
-    loadHomeData();
+    } catch (err) {
+      console.error('Library load error:', err);
+    } finally {
+      setLoadingTests(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -154,7 +139,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!topicUserSelected && pastedText.trim().length > 30) {
-      const detected = quickDetectTopic(pastedText);
+      const detected = detectTopic(pastedText);
       setPastedTopic(detected);
     }
   }, [pastedText, topicUserSelected]);
@@ -176,52 +161,103 @@ export default function HomePage() {
     setErrorMsg('Generation cancelled by user.');
   };
 
+  const deriveTitle = (rawTitle: string, text: string): string => {
+    const trimmed = rawTitle.trim();
+    if (trimmed) return trimmed;
+
+    // Check first line of text
+    const firstLine = text.trim().split('\n')[0].trim();
+    const words = firstLine.split(/\s+/).filter(Boolean);
+    if (words.length > 0 && words.length <= 15 && !/[.!?]$/.test(firstLine)) {
+      return firstLine.replace(/^#+\s*/, '');
+    }
+
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.toLocaleDateString(undefined, { month: 'short' });
+    return `Untitled passage, ${day} ${month}`;
+  };
+
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
-    if (inputMode === 'paste' && wordCount < 80) {
+    if (inputMode === 'url') {
+      setErrorMsg(
+        'In a 100% static client-side web app, browser CORS restricts fetching arbitrary URLs directly. Please switch to "Paste Article" and copy the essay text directly.'
+      );
+      return;
+    }
+
+    if (wordCount < 80) {
       setErrorMsg(
         `Please paste at least 80 words of an article or essay (currently ${wordCount} words) so the engine can craft multi-layered questions.`
       );
       return;
     }
-    if (inputMode === 'url' && !articleUrl.trim()) {
-      setErrorMsg('Please enter a valid article or essay URL (e.g. https://...).');
+
+    const { paragraphs } = normalizeParagraphs(pastedText);
+    if (paragraphs.length === 0) {
+      setErrorMsg('Could not extract valid paragraphs from the text. Please check your paste.');
       return;
     }
+
+    const finalTitle = deriveTitle(pastedTitle, pastedText);
+    const calculatedWc = computeWordCount(paragraphs);
+    const targetSeconds = Math.round((calculatedWc / 250) * 60) + (examType === 'GMAT' ? 360 : 300);
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
     setGenerating(true);
+
     try {
-      const res = await fetch('/api/generate-rc', {
-        method: 'POST',
+      const result = await generateRcQuestions({
+        paragraphs,
+        title: finalTitle,
+        topic: pastedTopic,
+        examType,
+        difficulty,
+        focusMode,
+        engine,
+        geminiKey: hasGeminiKey ? geminiKey : undefined,
+        groqKey: hasGroqKey ? groqKey : undefined,
+        useGroq,
+        doubleCheck: engine === 'gemini' ? doubleCheck : false,
+        geminiModel,
+        groqModel,
+        onStage: (st) => setGenStage(st),
         signal: controller.signal,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: pastedTitle,
-          text: inputMode === 'paste' ? pastedText : '',
-          url: inputMode === 'url' ? articleUrl : '',
-          topic: pastedTopic,
-          examType,
-          difficulty,
-          focusMode,
-          userId: user?.id || guestId
-        })
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to generate RC test');
-      }
-      navigate(`/test/${data.id}`);
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        setErrorMsg('Generation was cancelled.');
-      } else {
-        setErrorMsg(err instanceof Error ? err.message : 'Generation error');
-      }
+
+      const newTest: RCTest = {
+        id: generateCustomTestId(),
+        title: finalTitle,
+        topic: pastedTopic,
+        source_label: 'Custom Paste',
+        category: 'custom',
+        exam_type: examType,
+        difficulty,
+        word_count: calculatedWc,
+        target_seconds: targetSeconds,
+        passage_paragraphs: paragraphs,
+        questions: result.questions,
+        generation_source: result.source,
+        generation_reason: result.reason || null,
+        generation_diagnostics: result.diagnostics || null,
+        verification_info: result.verification_info || null,
+        created_at: new Date().toISOString(),
+      };
+
+      saveCustomTest(newTest);
       setGenerating(false);
+      navigate(`/test/${newTest.id}`);
+    } catch (err: any) {
+      setGenerating(false);
+      if (err.message === 'User aborted generation' || controller.signal.aborted) {
+        setErrorMsg('Generation cancelled by user.');
+      } else {
+        setErrorMsg(err.message || 'Generation failed.');
+      }
     } finally {
       abortControllerRef.current = null;
     }
@@ -238,9 +274,11 @@ export default function HomePage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-16">
       <GeneratingOverlay
         isGenerating={generating}
-        passageText={inputMode === 'paste' ? pastedText : articleUrl}
+        stage={genStage}
+        passageText={pastedText}
         examType={examType}
         difficulty={difficulty}
+        engine={engine}
         onCancel={handleCancelGenerate}
         error={errorMsg && generating ? errorMsg : null}
         onRetry={() => {
@@ -248,53 +286,8 @@ export default function HomePage() {
           handleGenerate({ preventDefault: () => {} } as React.FormEvent);
         }}
       />
-      {/* Daily Live RC Arena Strip */}
-      {liveTest && (
-        <div
-          className="mb-8 rounded-2xl px-4 sm:px-5 py-3.5 border flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-          style={{
-            backgroundColor: 'var(--color-surface)',
-            borderColor: 'var(--color-border-strong)',
-            boxShadow: 'var(--shadow-soft)'
-          }}
-        >
-          <div className="flex items-start sm:items-center gap-3">
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold shrink-0 mt-0.5 sm:mt-0"
-              style={{
-                backgroundColor: 'var(--color-correct-soft)',
-                color: 'var(--color-correct)'
-              }}
-            >
-              <Flame className="w-3.5 h-3.5" />
-              DAILY LIVE RC
-            </span>
-            <div>
-              <p className="text-sm font-semibold" style={{ color: 'var(--color-ink)' }}>
-                {liveTest.title}
-              </p>
-              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                {liveTest.topic} · {liveTest.word_count} words · 4 CAT questions (+3 / −1) · Live global leaderboard
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              to="/live"
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold rc-btn-secondary"
-            >
-              Leaderboard
-            </Link>
-            <Link
-              to={`/test/${liveTest.id}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold rc-btn-primary"
-            >
-              <span>Enter Live Set</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-      )}
+
+      <ProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
 
       {/* Editorial Hero */}
       <header className="text-center max-w-3xl mx-auto mb-9">
@@ -318,7 +311,7 @@ export default function HomePage() {
           RC test.
         </h1>
         <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-          Paste text, import an essay URL, or choose from curated articles. Instant scoring and per-option distractor explanations tuned for{' '}
+          Paste text or choose from curated articles. 100% local-first and private in your browser. Instant scoring and per-option distractor explanations tuned for{' '}
           <strong style={{ color: 'var(--color-ink)' }}>CAT VARC</strong> and{' '}
           <strong style={{ color: 'var(--color-ink)' }}>GMAT Focus</strong>.
         </p>
@@ -354,22 +347,6 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => {
-                setInputMode('url');
-                setErrorMsg(null);
-              }}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer"
-              style={{
-                backgroundColor: inputMode === 'url' ? 'var(--color-surface)' : 'transparent',
-                color: inputMode === 'url' ? 'var(--color-ink)' : 'var(--color-text-muted)',
-                boxShadow: inputMode === 'url' ? 'var(--shadow-soft)' : 'none'
-              }}
-            >
-              <Globe className="w-4 h-4" />
-              <span>From URL</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
                 setInputMode('library');
                 setErrorMsg(null);
               }}
@@ -381,7 +358,7 @@ export default function HomePage() {
               }}
             >
               <BookOpen className="w-4 h-4" />
-              <span>Article Library ({libraryTests.length})</span>
+              <span>Curated Library ({libraryTests.length})</span>
             </button>
           </div>
 
@@ -426,183 +403,223 @@ export default function HomePage() {
         {/* Mode 1 & 2: Paste or URL Form */}
         {inputMode !== 'library' ? (
           <form onSubmit={handleGenerate} className="space-y-5">
-            {inputMode === 'paste' ? (
-              <div>
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-                    Paste Essay or Article Text (Aeon, Economist, New Yorker, Guardan, Research)
-                  </label>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
-                      Quick fill:
-                    </span>
-                    {SAMPLE_PRESETS.map((preset) => (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        onClick={() => {
-                          setPastedTitle(preset.title);
-                          setPastedText(preset.text);
-                          setPastedTopic(quickDetectTopic(preset.text));
-                          setTopicUserSelected(false);
-                          setErrorMsg(null);
-                        }}
-                        className="text-xs px-2.5 py-1 rounded-full rc-chip cursor-pointer"
-                      >
-                        + {preset.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-muted)' }}>
-                    Passage Title (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={pastedTitle}
-                    onChange={(e) => setPastedTitle(e.target.value)}
-                    placeholder="Leave blank to use the first line, or 'Untitled passage'"
-                    className="w-full px-4 py-2.5 rounded-xl text-sm border outline-none transition-colors"
-                    style={{
-                      backgroundColor: 'var(--color-bg)',
-                      borderColor: 'var(--color-border)',
-                      color: 'var(--color-ink)'
-                    }}
-                  />
-                </div>
-
-                <textarea
-                  rows={8}
-                  value={pastedText}
-                  onChange={(e) => setPastedText(e.target.value)}
-                  placeholder="Paste any argumentative essay, philosophical reflection, science column, or economic commentary here (aim for 300–850 words for authentic CAT/GMAT passage pacing)..."
-                  className="w-full p-4 rounded-2xl text-sm leading-relaxed border outline-none transition-colors resize-y font-body"
-                  style={{
-                    backgroundColor: 'var(--color-bg)',
-                    borderColor: 'var(--color-border-strong)',
-                    color: 'var(--color-ink)'
-                  }}
-                />
-
-                {startsMidWord && (
-                  <div
-                    className="flex items-center gap-2 mt-2 px-3.5 py-2.5 rounded-xl text-xs font-medium border"
-                    style={{
-                      backgroundColor: 'var(--color-warn-soft)',
-                      borderColor: 'var(--color-warn)',
-                      color: 'var(--color-warn)'
-                    }}
-                  >
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>The first paragraph starts mid-word. Check your paste.</span>
-                  </div>
-                )}
-
-                <div className="flex items-center justify-between mt-2 text-xs">
-                  <span
-                    style={{
-                      color:
-                        wordCount === 0
-                          ? 'var(--color-text-soft)'
-                          : wordCount < 80
-                          ? 'var(--color-warn)'
-                          : 'var(--color-correct)'
-                    }}
-                  >
-                    {wordCount} words{' '}
-                    {wordCount === 0
-                      ? '· Minimum 80 words (450–700 words ideal for CAT/GMAT)'
-                      : wordCount < 80
-                      ? `· Add ${80 - wordCount} more words`
-                      : '· Ready for exam-grade RC synthesis'}
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                  Paste Essay or Article Text (Aeon, Economist, New Yorker, Guardian, Research)
+                </label>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                    Quick fill:
                   </span>
-                  {pastedText && (
+                  {SAMPLE_PRESETS.map((preset) => (
                     <button
+                      key={preset.label}
                       type="button"
                       onClick={() => {
-                        setPastedText('');
-                        setPastedTitle('');
+                        setPastedTitle(preset.title);
+                        setPastedText(preset.text);
+                        setPastedTopic(detectTopic(preset.text));
                         setTopicUserSelected(false);
+                        setErrorMsg(null);
                       }}
-                      className="hover:underline cursor-pointer"
-                      style={{ color: 'var(--color-text-soft)' }}
+                      className="text-xs px-2.5 py-1 rounded-full rc-chip cursor-pointer"
                     >
-                      Clear text
+                      + {preset.label}
                     </button>
-                  )}
-                </div>
-
-                {/* Topic Selector with auto-detection preselected */}
-                <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-                      Passage Topic {topicUserSelected ? '(Custom Selected)' : '(Auto-Detected)'}
-                    </label>
-                    {!topicUserSelected && pastedText.trim().length > 30 && (
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
-                        Preselected: {pastedTopic}
-                      </span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {TOPIC_CATEGORIES.map((cat) => {
-                      const isSelected = pastedTopic === cat;
-                      return (
-                        <button
-                          key={cat}
-                          type="button"
-                          onClick={() => {
-                            setPastedTopic(cat);
-                            setTopicUserSelected(true);
-                          }}
-                          className={`px-3 py-2 rounded-xl text-xs font-semibold border text-left transition-all cursor-pointer truncate ${
-                            isSelected ? 'rc-chip-active' : 'rc-chip'
-                          }`}
-                        >
-                          {cat}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  ))}
                 </div>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <label className="block text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-                  Article or Essay URL
+
+              <div className="mb-3">
+                <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                  Passage Title (Optional)
                 </label>
                 <input
-                  type="url"
-                  value={articleUrl}
-                  onChange={(e) => setArticleUrl(e.target.value)}
-                  placeholder="https://aeon.co/essays/... or any public essay/article URL"
-                  className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
+                  type="text"
+                  value={pastedTitle}
+                  onChange={(e) => setPastedTitle(e.target.value)}
+                  placeholder="Leave blank to use the first line, or 'Untitled passage, 14 Nov'"
+                  className="w-full px-4 py-2.5 rounded-xl text-sm border outline-none transition-colors"
                   style={{
                     backgroundColor: 'var(--color-bg)',
-                    borderColor: 'var(--color-border-strong)',
+                    borderColor: 'var(--color-border)',
                     color: 'var(--color-ink)'
                   }}
                 />
-                <p className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
-                  PracticeRC fetches readable body paragraphs from public articles and trims boilerplate automatically. If a site paywalls its HTML, switch to <strong>Paste Article</strong>.
-                </p>
               </div>
-            )}
 
-            {/* Calibration Controls */}
+              <textarea
+                rows={8}
+                value={pastedText}
+                onChange={(e) => setPastedText(e.target.value)}
+                placeholder="Paste any argumentative essay, philosophical reflection, science column, or economic commentary here (aim for 300–850 words for authentic CAT/GMAT passage pacing)..."
+                className="w-full p-4 rounded-2xl text-sm leading-relaxed border outline-none transition-colors resize-y font-body"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-border-strong)',
+                  color: 'var(--color-ink)'
+                }}
+              />
+
+              {startsMidWord && (
+                <div
+                  className="flex items-center gap-2 mt-2 px-3.5 py-2.5 rounded-xl text-xs font-medium border"
+                  style={{
+                    backgroundColor: 'var(--color-warn-soft)',
+                    borderColor: 'var(--color-warn)',
+                    color: 'var(--color-warn)'
+                  }}
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>The first paragraph starts mid-word. Check your paste.</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between mt-2 text-xs">
+                <span
+                  style={{
+                    color:
+                      wordCount === 0
+                        ? 'var(--color-text-soft)'
+                        : wordCount < 80
+                        ? 'var(--color-warn)'
+                        : 'var(--color-correct)'
+                  }}
+                >
+                  {wordCount} words{' '}
+                  {wordCount === 0
+                    ? '· Minimum 80 words (Best results with 400 to 800 words)'
+                    : wordCount < 80
+                    ? `· Add ${80 - wordCount} more words (Best results with 400 to 800 words)`
+                    : '· Best results with 400 to 800 words'}
+                </span>
+                {pastedText && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPastedText('');
+                      setPastedTitle('');
+                      setTopicUserSelected(false);
+                    }}
+                    className="hover:underline cursor-pointer"
+                    style={{ color: 'var(--color-text-soft)' }}
+                  >
+                    Clear text
+                  </button>
+                )}
+              </div>
+
+              {/* Topic Selector with auto-detection preselected */}
+              <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                    Passage Topic {topicUserSelected ? '(Custom Selected)' : '(Auto-Detected)'}
+                  </label>
+                  {!topicUserSelected && pastedText.trim().length > 30 && (
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
+                      Preselected: {pastedTopic}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {TOPIC_CATEGORIES.map((cat) => {
+                    const isSelected = pastedTopic === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          setPastedTopic(cat);
+                          setTopicUserSelected(true);
+                        }}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold border text-left transition-all cursor-pointer truncate ${
+                          isSelected ? 'rc-chip-active' : 'rc-chip'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Generation Engine & Calibration Controls */}
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl border"
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-2xl border"
               style={{
                 backgroundColor: 'var(--color-surface-2)',
                 borderColor: 'var(--color-border)'
               }}
             >
+              {/* Engine Selector */}
+              <div>
+                <label className="flex items-center justify-between text-xs font-semibold mb-2" style={{ color: 'var(--color-text-muted)' }}>
+                  <span>Question Engine</span>
+                  {!hasGeminiKey && (
+                    <button
+                      type="button"
+                      onClick={() => setProfileModalOpen(true)}
+                      className="text-[11px] text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                    >
+                      <Key className="w-3 h-3" />
+                      Add Gemini Key
+                    </button>
+                  )}
+                </label>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (hasGeminiKey) {
+                        setEngine('gemini');
+                      } else {
+                        setProfileModalOpen(true);
+                      }
+                    }}
+                    className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      engine === 'gemini' ? 'rc-chip-active' : 'rc-chip'
+                    }`}
+                    title={hasGeminiKey ? 'Use Google Gemini AI' : 'Add Gemini API Key in Profile to enable'}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Gemini AI</span>
+                    {!hasGeminiKey && <span className="text-[10px] opacity-70">(BYOK)</span>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEngine('algorithm')}
+                    className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      engine === 'algorithm' ? 'rc-chip-active' : 'rc-chip'
+                    }`}
+                  >
+                    <Cpu className="w-3.5 h-3.5" />
+                    <span>Algorithm</span>
+                  </button>
+                </div>
+
+                {engine === 'gemini' && (
+                  <label className="flex items-center gap-2 mt-2 pt-2 border-t cursor-pointer" style={{ borderColor: 'var(--color-border)' }}>
+                    <input
+                      type="checkbox"
+                      checked={doubleCheck}
+                      onChange={(e) => setDoubleCheck(e.target.checked)}
+                      className="rounded accent-emerald-600 w-3.5 h-3.5 cursor-pointer"
+                    />
+                    <span className="text-[11px] font-semibold" style={{ color: 'var(--color-ink)' }}>
+                      {hasGroqKey && useGroq
+                        ? 'Double-check answers with Groq'
+                        : 'Double-check answers (recommended, uses extra requests)'}
+                    </span>
+                  </label>
+                )}
+              </div>
+
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-semibold mb-2" style={{ color: 'var(--color-text-muted)' }}>
                   <Sliders className="w-3.5 h-3.5" />
-                  <span>Distractor Rigor / Difficulty</span>
+                  <span>Rigor / Difficulty</span>
                 </label>
                 <div className="flex gap-1.5">
                   {(['Standard', 'Challenging', 'Brutal'] as DifficultyLevel[]).map((lvl) => (
@@ -610,7 +627,7 @@ export default function HomePage() {
                       key={lvl}
                       type="button"
                       onClick={() => setDifficulty(lvl)}
-                      className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border cursor-pointer transition-all ${
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold border cursor-pointer transition-all ${
                         difficulty === lvl ? 'rc-chip-active' : 'rc-chip'
                       }`}
                     >
@@ -622,7 +639,7 @@ export default function HomePage() {
 
               <div>
                 <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--color-text-muted)' }}>
-                  Question Stem Emphasis
+                  Question Stem Focus
                 </label>
                 <select
                   value={focusMode}
@@ -634,9 +651,9 @@ export default function HomePage() {
                     color: 'var(--color-ink)'
                   }}
                 >
-                  <option value="Balanced Exam Mix">Balanced Exam Mix (Main Idea + Inference + Function + Tone)</option>
-                  <option value="Inference & Implicit Logic">Inference &amp; Implicit Logic Heavy</option>
-                  <option value="Main Idea & Structure">Argument Structure &amp; Author Stance</option>
+                  <option value="Balanced Exam Mix">Balanced Exam Mix</option>
+                  <option value="Inference & Implicit Logic">Inference &amp; Logic Heavy</option>
+                  <option value="Main Idea & Structure">Argument Structure</option>
                 </select>
               </div>
             </div>
@@ -667,6 +684,10 @@ export default function HomePage() {
                     Generates <strong>5 MCQs × 5 options (A–E)</strong> · GMAT Focus Verbal · 10m target timer
                   </span>
                 )}
+                {' · '}
+                <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+                  Engine: {engine === 'gemini' ? 'Gemini AI (BYOK)' : 'Rule-based Algorithm'}
+                </span>
               </div>
 
               <button
@@ -690,7 +711,7 @@ export default function HomePage() {
             </div>
           </form>
         ) : (
-          /* Mode 3: Curated Article Library Picker */
+          /* Mode 2: Curated Article Library Picker */
           <div>
             <div className="flex flex-wrap items-center gap-1.5 mb-5">
               {[
@@ -780,7 +801,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* Value Props Row (exact PracticeRC ethos) */}
+      {/* Value Props Row */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
         <div className="rc-card p-5">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
@@ -811,15 +832,15 @@ export default function HomePage() {
             <Trophy className="w-4 h-4" />
           </div>
           <h2 className="font-display font-semibold text-lg mb-1.5" style={{ color: 'var(--color-ink)' }}>
-            60 CAT PYQs &amp; Live Arena
+            CAT PYQ Catalog &amp; Analytics
           </h2>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-            Benchmark yourself across all 15 slots of CAT 2021–2025 RC topics, compete on the Daily Live RC leaderboard, and track weak question types on your Report Card.
+            Explore the structured 60-slot CAT 2021–2025 past papers catalog, drill speed reading, and track weak question types on your local Report Card.
           </p>
         </div>
       </section>
 
-      {/* Embedded Interactive Sample CAT RC Set ("The Attention Economy" from PracticeRC!) */}
+      {/* Embedded Interactive Sample CAT RC Set ("The Attention Economy") */}
       {featuredSample && sampleFirstQ && (
         <section className="rc-card p-6 sm:p-8 mb-14">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>

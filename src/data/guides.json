@@ -1,0 +1,46 @@
+[
+  {
+    "id": "active-argument-mapping",
+    "slug": "active-argument-mapping",
+    "category": "guide",
+    "eyebrow": "VARC CORE STRATEGY",
+    "title": "Active Argument Mapping: Reading for Structure Over Fact",
+    "summary": "How 99th-percentile CAT test-takers track thesis pivots and author stance in under 3.5 minutes.",
+    "read_minutes": 6,
+    "content_blocks": [
+      {
+        "heading": "1. Why Passive Reading Fails in CAT & GMAT",
+        "body": "Most aspirants read RC passages like newspaper articles—hoping that absorbing general meaning will suffice when answering questions. But CAT questions rarely test factual recall; they test structural relationships, unstated assumptions, and rhetorical pivots.",
+        "bullets": [
+          "Track the author's voice vs. cited opinions: Does the author endorse the view or merely summarize it?",
+          "Highlight discourse pivots immediately: Words like \"However\", \"Yet\", and \"Obscures\" signal where the core thesis lives."
+        ]
+      },
+      {
+        "heading": "2. The Two-Pass Reading Routine",
+        "body": "Spend 2.5 to 3 minutes on your first pass establishing paragraph functions. Do not memorize details; note where they live so you can verify them when answering specific inference questions."
+      }
+    ]
+  },
+  {
+    "id": "eliminating-close-distractors",
+    "slug": "eliminating-close-distractors",
+    "category": "guide",
+    "eyebrow": "TRAP OPTION DIAGNOSIS",
+    "title": "The Anatomy of CAT Trap Options: How to Eliminate the 50-50 Choice",
+    "summary": "A taxonomy of how exam convenors design seductive wrong options that fool over 60% of aspirants.",
+    "read_minutes": 8,
+    "content_blocks": [
+      {
+        "heading": "The 4 Major Trap Archetypes",
+        "body": "Exam designers rarely write obviously foolish options. The most dangerous distractors are 80% correct with a fatal flaw hidden in an adverb or causal verb.",
+        "bullets": [
+          "Too Extreme: Uses absolute qualifiers like \"wholly\", \"completely\", or \"invariably\" where the author was guarded.",
+          "Causal Reversal: Changes who caused what, or attributes bad faith to a structural blind spot.",
+          "Out of Scope: Sounds scholarly and plausible in real life, but has zero textual warrant in this specific passage."
+        ]
+      }
+    ]
+  }
+]
+

@@ -25,3 +25,6 @@ dist-ssr
 .vite-source-tags.js
 .env
 .data/
+archive/
+scripts/audit-out/
+scripts/eval/out/

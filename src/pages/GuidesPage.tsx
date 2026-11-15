@@ -1,35 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { BookOpen, Clock, ArrowRight } from 'lucide-react';
 import type { RCGuide, GuideContentBlock } from '../types';
+import guidesData from '../data/guides.json';
 
 export default function GuidesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [guides, setGuides] = useState<RCGuide[]>([]);
-  const [loading, setLoading] = useState(true);
+  const guides = useMemo(() => (guidesData as unknown as RCGuide[]).filter((g) => g.category === 'guide' || g.category === 'blog'), []);
 
   const activeSlug = searchParams.get('slug') || '';
-
-  useEffect(() => {
-    const loadGuides = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/guides');
-        if (res.ok) {
-          const all: RCGuide[] = await res.json();
-          setGuides(all.filter((g) => g.category === 'guide' || g.category === 'blog'));
-        }
-      } catch (err) {
-        console.error('Guides fetch error:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadGuides();
-  }, []);
-
-  const selectedGuide =
-    guides.find((g) => g.slug === activeSlug) || guides[0] || null;
+  const selectedGuide = guides.find((g) => g.slug === activeSlug) || guides[0] || null;
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-16">
@@ -48,11 +28,6 @@ export default function GuidesPage() {
         </p>
       </div>
 
-      {loading ? (
-        <div className="py-16 text-center text-sm" style={{ color: 'var(--color-text-muted)' }}>
-          Loading strategy guides…
-        </div>
-      ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
           {/* Sidebar List */}
           <aside className="lg:col-span-4 space-y-2.5">
@@ -160,7 +135,6 @@ export default function GuidesPage() {
             </article>
           )}
         </div>
-      )}
     </div>
   );
 }

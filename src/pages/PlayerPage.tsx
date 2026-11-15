@@ -17,11 +17,21 @@ import {
   Slash,
   Award,
   BarChart2,
-  Sparkles
+  Sparkles,
+  AlertCircle,
+  Cpu,
+  Copy,
+  Check,
+  X
 } from 'lucide-react';
-import type { RCTest } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { createPortal } from 'react-dom';
+import type { RCTest, RCAttempt } from '../types';
+import { useProfile } from '../contexts/ProfileContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { getTest } from '../lib/testStore';
+import { saveAttempt, getAttempts, saveCustomTest } from '../lib/storage';
+import { generateRcQuestions, formatQualityNote } from '../lib/geminiClient.ts';
+export { formatQualityNote };
 
 interface HighlightSpan {
   paraIdx: number;
@@ -29,15 +39,72 @@ interface HighlightSpan {
   thread: 1 | 2;
 }
 
+function computePlainReason(reason?: string | null): string {
+  if (!reason) {
+    return 'Gemini AI generation was unsuccessful; deterministic rule-based algorithm was used instead.';
+  }
+  if (reason.includes('unverified') || reason.includes('minimum required is') || reason.includes('validation and review')) {
+    return 'Not enough questions survived structural checks and independent blind reviewer verification.';
+  }
+  if (reason.includes('could not be verified against passage evidence')) {
+    return 'Gemini generated questions, but not enough options could be verified against exact passage evidence.';
+  }
+  if (reason.includes('HTTP 429') || reason.includes('rate_limited')) {
+    return 'Google Gemini API rate limit or quota was exceeded.';
+  }
+  if (reason.includes('HTTP 403') || reason.includes('API_KEY_INVALID') || reason.includes('missing_key')) {
+    return 'Google Gemini API key was rejected as invalid, missing, or unauthorized.';
+  }
+  if (reason.includes('timed out') || reason.includes('timeout')) {
+    return 'Gemini API request exceeded the timeout window.';
+  }
+  if (reason.includes('MAX_TOKENS')) {
+    return 'Gemini generation reached the maximum output token limit before completing.';
+  }
+  return reason;
+}
+
+function computeVerificationSentence(test?: RCTest | null): string {
+  if (!test) return '';
+  const info = test.verification_info;
+  const diag = test.generation_diagnostics;
+  if (!info && !diag) return 'Generated with AI.';
+
+  const groqModel = info?.groqModelUsed || diag?.groqModelUsed;
+  const groqFailMsg = diag?.groqFailureMessage || info?.groqFailureMessage;
+
+  if (info?.groqUnavailable || diag?.groqUnavailable) {
+    const reasonMsg = groqFailMsg ? ` (${groqFailMsg})` : '';
+    return `Groq failed${reasonMsg}, so Gemini checked the answers (${info?.questionsKept ?? diag?.questionsPassed ?? 0} of ${info?.questionsChecked ?? diag?.questionsChecked ?? 0} questions kept).`;
+  }
+  if (info?.reviewer === 'groq' || diag?.reviewerUsed === 'groq') {
+    const modelTag = groqModel ? `checked by Groq (${groqModel})` : 'checked by Groq';
+    return `${info?.questionsKept ?? diag?.questionsPassed ?? 0} of ${info?.questionsChecked ?? diag?.questionsChecked ?? 0} questions kept (${modelTag}).`;
+  }
+  if (info?.reviewer === 'gemini' || diag?.reviewerUsed === 'gemini') {
+    return `${info?.questionsKept ?? diag?.questionsPassed ?? 0} of ${info?.questionsChecked ?? diag?.questionsChecked ?? 0} questions kept after checking by Gemini.`;
+  }
+  if (info?.reviewer === 'none' || diag?.reviewerUsed === 'none') {
+    return 'answers were not double-checked';
+  }
+  return `${info?.questionsKept ?? diag?.questionsPassed ?? 0} questions verified.`;
+}
+
 export default function PlayerPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, displayName, guestId } = useAuth();
+  const { displayName, geminiKey, hasGeminiKey } = useProfile();
   const { theme, toggleTheme } = useTheme();
 
   const [test, setTest] = useState<RCTest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Fallback Diagnostics & Retry Modal
+  const [fallbackModalOpen, setFallbackModalOpen] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState<string | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState(false);
 
   // Exam State
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -56,31 +123,28 @@ export default function PlayerPage() {
   // Submission & Review State
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [rankInfo, setRankInfo] = useState<{ rank: number; totalPeers: number } | null>(null);
+  const [previousAttempt, setPreviousAttempt] = useState<RCAttempt | null>(null);
 
   useEffect(() => {
-    const loadTest = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(`/api/tests?id=${id}`);
-        if (!res.ok) throw new Error('Passage test not found.');
-        const data: RCTest = await res.json();
-        setTest(data);
-        setCurrentIdx(0);
-        setAnswers({});
-        setMarkedReview({});
-        setEliminated({});
-        setElapsedSeconds(0);
-        setSubmitted(false);
-        setHighlights([]);
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Error loading test');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadTest();
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = getTest(id);
+      if (!data) throw new Error('Passage test not found.');
+      setTest(data);
+      setCurrentIdx(0);
+      setAnswers({});
+      setMarkedReview({});
+      setEliminated({});
+      setElapsedSeconds(0);
+      setSubmitted(false);
+      setHighlights([]);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error loading test');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   // Live Exam Timer
@@ -157,7 +221,7 @@ export default function PlayerPage() {
 
   // Compute results memo
   const resultMetrics = useMemo(() => {
-    if (!test) return null;
+    if (!test || !Array.isArray(test.questions)) return null;
     let correct = 0;
     let wrong = 0;
     let unattempted = 0;
@@ -204,34 +268,40 @@ export default function PlayerPage() {
     };
   }, [test, answers, elapsedSeconds]);
 
-  const handleSubmitTest = async () => {
+  const handleSubmitTest = () => {
     if (!test || !resultMetrics || submitted || submitting) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/attempts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          test_id: test.id,
-          user_id: user?.id || guestId,
-          user_name: displayName,
-          exam_type: test.exam_type,
-          score: resultMetrics.score,
-          max_score: resultMetrics.maxScore,
-          correct_count: resultMetrics.correct,
-          wrong_count: resultMetrics.wrong,
-          unattempted_count: resultMetrics.unattempted,
-          total_questions: test.questions.length,
-          time_seconds: Math.max(10, elapsedSeconds),
-          wpm_estimate: resultMetrics.wpm,
-          answers,
-          type_breakdown: resultMetrics.typeBreakdown
-        })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setRankInfo({ rank: data.rank, totalPeers: data.totalPeers });
-      }
+      const allAttempts = getAttempts();
+      const prev = allAttempts.find((a) => String(a.test_id) === String(test.id));
+      setPreviousAttempt(prev || null);
+
+      const newAttempt: RCAttempt = {
+        id: `att-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        test_id: test.id,
+        user_id: 'local-aspirant',
+        user_name: displayName || 'Aspirant',
+        exam_type: test.exam_type,
+        score: resultMetrics.score,
+        max_score: resultMetrics.maxScore,
+        correct_count: resultMetrics.correct,
+        wrong_count: resultMetrics.wrong,
+        unattempted_count: resultMetrics.unattempted,
+        total_questions: test.questions.length,
+        time_seconds: Math.max(10, elapsedSeconds),
+        wpm_estimate: resultMetrics.wpm,
+        answers,
+        type_breakdown: resultMetrics.typeBreakdown,
+        created_at: new Date().toISOString(),
+        rc_tests: {
+          title: test.title,
+          topic: test.topic,
+          category: test.category,
+          difficulty: test.difficulty,
+        }
+      };
+
+      saveAttempt(newAttempt);
     } catch (err) {
       console.error('Submit attempt error:', err);
     } finally {
@@ -248,7 +318,7 @@ export default function PlayerPage() {
     setElapsedSeconds(0);
     setCurrentIdx(0);
     setSubmitted(false);
-    setRankInfo(null);
+    setPreviousAttempt(null);
   };
 
   if (loading) {
@@ -278,12 +348,198 @@ export default function PlayerPage() {
     );
   }
 
+  if (!test.questions || test.questions.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <p className="font-display text-2xl font-semibold mb-2" style={{ color: 'var(--color-ink)' }}>
+          This passage has no questions yet
+        </p>
+        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+          This is an un-authored catalog slot or draft passage.
+        </p>
+        <Link to="/library" className="px-4 py-2 rounded-xl text-sm rc-btn-primary mt-4">
+          Back to Library
+        </Link>
+      </div>
+    );
+  }
+
   const currentQuestion = test.questions[currentIdx] || test.questions[0];
   const answeredCount = Object.values(answers).filter(Boolean).length;
   const overTarget = elapsedSeconds > (test.target_seconds || 480);
 
   const fontSizePx =
     fontScale === 'sm' ? '16.5px' : fontScale === 'lg' ? '23px' : '19.5px';
+
+  const renderGenerationBadge = () => {
+    if (!test || test.category === 'library' || test.category === 'pyq' || !test.generation_source) {
+      return null;
+    }
+
+    if (test.generation_source === 'ai') {
+      const sentence = computeVerificationSentence(test);
+      const isGroq = test.verification_info?.reviewer === 'groq' || test.generation_diagnostics?.reviewerUsed === 'groq';
+      const groqModel = test.verification_info?.groqModelUsed || test.generation_diagnostics?.groqModelUsed;
+      return (
+        <div className="inline-flex items-center gap-1.5 shrink-0">
+          <span
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 border"
+            style={{
+              backgroundColor: 'var(--color-correct-soft)',
+              color: 'var(--color-correct)',
+              borderColor: 'var(--color-correct)'
+            }}
+            title={sentence}
+          >
+            <CheckCircle2 className="w-3 h-3" />
+            <span>{isGroq && groqModel ? `Successful AI · checked by Groq (${groqModel})` : 'Successful AI'}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setFallbackModalOpen(true)}
+            className="text-[11px] font-medium underline cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ color: 'var(--color-correct)' }}
+            title="View verification details and quality notes"
+          >
+            Details
+          </button>
+        </div>
+      );
+    }
+
+    if (test.generation_source === 'fallback') {
+      return (
+        <div className="inline-flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setFallbackModalOpen(true)}
+            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border cursor-pointer hover:opacity-85 transition-all shadow-xs"
+            style={{
+              backgroundColor: 'var(--color-warn-soft)',
+              color: 'var(--color-warn)',
+              borderColor: 'var(--color-warn)'
+            }}
+            title={test.generation_reason ? `Click for details & AI retry: ${test.generation_reason}` : 'Click for details & AI retry'}
+          >
+            <AlertCircle className="w-3 h-3" />
+            <span>Fallback</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFallbackModalOpen(true)}
+            className="text-[11px] font-medium underline cursor-pointer hover:opacity-80 transition-opacity"
+            style={{ color: 'var(--color-warn)' }}
+            title="View diagnostics and retry with Gemini AI"
+          >
+            Details
+          </button>
+        </div>
+      );
+    }
+
+    if (test.generation_source === 'algorithm') {
+      return (
+        <span
+          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 border"
+          style={{
+            backgroundColor: 'var(--color-surface-2)',
+            color: 'var(--color-text-muted)',
+            borderColor: 'var(--color-border)'
+          }}
+          title="Generated via deterministic rule-based algorithm"
+        >
+          <Cpu className="w-3 h-3" />
+          <span>Algorithm</span>
+        </span>
+      );
+    }
+
+    return null;
+  };
+
+  const plainReason = computePlainReason(test?.generation_reason);
+
+  const handleCopyDiagnostics = () => {
+    const diag = test?.generation_diagnostics || {};
+    const lines = [
+      'PracticeRC Generation Diagnostics',
+      `Timestamp: ${diag.timestamp || new Date().toISOString()}`,
+      `Model: ${diag.modelUsed || 'gemini-3.5-flash-lite'}`,
+      `Reviewer: ${diag.reviewerUsed || test?.verification_info?.reviewer || 'none'}`,
+      ...(diag.groqModelUsed || test?.verification_info?.groqModelUsed
+        ? [`Groq Model: ${diag.groqModelUsed || test?.verification_info?.groqModelUsed}`]
+        : []),
+      `Groq Unavailable: ${Boolean(diag.groqUnavailable || test?.verification_info?.groqUnavailable)}`,
+      ...(diag.groqFailureMessage || test?.verification_info?.groqFailureMessage
+        ? [`Groq Failure: ${diag.groqFailureMessage || test?.verification_info?.groqFailureMessage}`]
+        : []),
+      `HTTP Status: ${diag.httpStatus ?? 'N/A'}`,
+      `finishReason: ${diag.finishReason ?? 'N/A'}`,
+      `Reason: ${plainReason}`,
+      `Raw Message: ${test?.generation_reason || 'N/A'}`,
+      `Token Usage: Prompt=${diag.tokenUsage?.promptTokens ?? 'N/A'}, Candidates=${diag.tokenUsage?.candidatesTokens ?? 'N/A'}, Total=${diag.tokenUsage?.totalTokens ?? 'N/A'}`,
+      `Questions Returned: ${diag.questionsReturned ?? 'N/A'}`,
+      `Questions Passed Verification: ${diag.questionsPassed ?? 'N/A'}`
+    ];
+    if (diag.rejectionReasons && diag.rejectionReasons.length > 0) {
+      lines.push('Rejection Details:');
+      diag.rejectionReasons.forEach((r: string) => lines.push(` - ${r}`));
+      diag.rejectionReasons.forEach((r: string) => {
+        const sanitized = !submitted
+          ? r.replace(/\b(Main Idea|Inference|Paragraph Function|Tone & Attitude|Strengthen \/ Weaken|Detail & Logic|Vocabulary in Context)\b/gi, 'Question')
+          : r;
+        lines.push(` - ${sanitized}`);
+      });
+    }
+    navigator.clipboard.writeText(lines.join('\n'));
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 2000);
+  };
+
+  const handleRegenerateWithAi = async () => {
+    if (!test || !hasGeminiKey) return;
+    setRegenerating(true);
+    setRegenError(null);
+    try {
+      const result = await generateRcQuestions({
+        paragraphs: test.passage_paragraphs,
+        title: test.title,
+        topic: test.topic,
+        examType: test.exam_type,
+        difficulty: test.difficulty,
+        engine: 'gemini',
+        geminiKey
+      });
+
+      if (result.source === 'ai') {
+        const updated: RCTest = {
+          ...test,
+          questions: result.questions,
+          generation_source: 'ai',
+          generation_reason: null,
+          generation_diagnostics: result.diagnostics || null
+        };
+        setTest(updated);
+        if (test.category === 'custom') {
+          saveCustomTest(updated);
+        }
+        setAnswers({});
+        setMarkedReview({});
+        setEliminated({});
+        setCurrentIdx(0);
+        setFallbackModalOpen(false);
+      } else {
+        setRegenError(result.reason || 'Gemini generation failed again; keeping original questions.');
+        if (result.diagnostics) {
+          setTest((prev) => (prev ? { ...prev, generation_diagnostics: result.diagnostics } : prev));
+        }
+      }
+    } catch (err: any) {
+      setRegenError(err.message || 'Regeneration encountered an error.');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
@@ -321,33 +577,7 @@ export default function PlayerPage() {
               >
                 {test.exam_type === 'CAT' ? 'CAT +3 / −1' : 'GMAT A–E'}
               </span>
-              {test.generation_source === 'ai' && (
-                <span
-                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 flex items-center gap-1 border"
-                  style={{
-                    backgroundColor: 'var(--color-correct-soft)',
-                    color: 'var(--color-correct)',
-                    borderColor: 'var(--color-correct)'
-                  }}
-                  title="Generated with Gemini AI and passage-verified evidence"
-                >
-                  <Sparkles className="w-2.5 h-2.5" />
-                  <span>AI Generated</span>
-                </span>
-              )}
-              {test.generation_source === 'fallback' && (
-                <span
-                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 flex items-center gap-1 border"
-                  style={{
-                    backgroundColor: 'var(--color-warn-soft)',
-                    color: 'var(--color-warn)',
-                    borderColor: 'var(--color-warn)'
-                  }}
-                  title={`Generated via curated heuristic rules (Reason: ${test.generation_reason || 'fallback'})`}
-                >
-                  <span>Curated Fallback</span>
-                </span>
-              )}
+              {renderGenerationBadge()}
               <h1 className="text-sm font-semibold truncate" style={{ color: 'var(--color-ink)' }}>
                 {test.title}
               </h1>
@@ -543,9 +773,8 @@ export default function PlayerPage() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         {/* LEFT PANE: Numbered Passage Reader */}
         <div
-          className={`lg:col-span-7 overflow-y-auto exam-scroll p-5 sm:p-8 lg:border-r ${
-            mobilePane === 'questions' ? 'hidden lg:block' : 'block'
-          }`}
+          className={`lg:col-span-7 overflow-y-auto exam-scroll p-5 sm:p-8 lg:border-r ${mobilePane === 'questions' ? 'hidden lg:block' : 'block'
+            }`}
           style={{
             backgroundColor: 'var(--color-surface)',
             borderColor: 'var(--color-border)'
@@ -573,20 +802,10 @@ export default function PlayerPage() {
                   <span>{test.difficulty}</span>
                 </>
               )}
-              {test.generation_source && (
+              {test.category === 'custom' && test.generation_source && (
                 <>
                   <span>·</span>
-                  <span
-                    className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-                    style={{
-                      backgroundColor:
-                        test.generation_source === 'ai' ? 'var(--color-correct-soft)' : 'var(--color-warn-soft)',
-                      color:
-                        test.generation_source === 'ai' ? 'var(--color-correct)' : 'var(--color-warn)'
-                    }}
-                  >
-                    {test.generation_source === 'ai' ? 'AI Generated' : `Fallback (${test.generation_reason || 'curated'})`}
-                  </span>
+                  {renderGenerationBadge()}
                 </>
               )}
             </div>
@@ -614,9 +833,8 @@ export default function PlayerPage() {
 
         {/* RIGHT PANE: Question Palette & Post-Submit Per-Option Explanations */}
         <div
-          className={`lg:col-span-5 overflow-y-auto exam-scroll p-5 sm:p-7 flex flex-col justify-between ${
-            mobilePane === 'passage' ? 'hidden lg:flex' : 'flex'
-          }`}
+          className={`lg:col-span-5 overflow-y-auto exam-scroll p-5 sm:p-7 flex flex-col justify-between ${mobilePane === 'passage' ? 'hidden lg:flex' : 'flex'
+            }`}
           style={{ backgroundColor: 'var(--color-bg)' }}
         >
           <div className="space-y-5">
@@ -645,17 +863,17 @@ export default function PlayerPage() {
                     </div>
                   </div>
 
-                  {rankInfo && (
+                  {previousAttempt && (
                     <div
                       className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5"
                       style={{
-                        backgroundColor: 'var(--color-accent-soft)',
-                        color: 'var(--color-accent)'
+                        backgroundColor: 'var(--color-surface-2)',
+                        color: 'var(--color-text-muted)'
                       }}
                     >
                       <Award className="w-4 h-4" />
                       <span>
-                        Rank #{rankInfo.rank} of {rankInfo.totalPeers}
+                        Previous best: {previousAttempt.score}/{previousAttempt.max_score}
                       </span>
                     </div>
                   )}
@@ -782,15 +1000,17 @@ export default function PlayerPage() {
                 <span className="font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-soft)' }}>
                   Question {currentIdx + 1} of {test.questions.length}
                 </span>
-                <span
-                  className="px-2.5 py-0.5 rounded-full font-semibold"
-                  style={{
-                    backgroundColor: 'var(--color-surface-2)',
-                    color: 'var(--color-accent)'
-                  }}
-                >
-                  {currentQuestion.type}
-                </span>
+                {submitted && (
+                  <span
+                    className="px-2.5 py-0.5 rounded-full font-semibold"
+                    style={{
+                      backgroundColor: 'var(--color-surface-2)',
+                      color: 'var(--color-accent)'
+                    }}
+                  >
+                    {currentQuestion.type}
+                  </span>
+                )}
               </div>
 
               <p className="font-semibold text-base leading-relaxed" style={{ color: 'var(--color-ink)' }}>
@@ -841,9 +1061,8 @@ export default function PlayerPage() {
                               [currentQuestion.id]: prev[currentQuestion.id] === opt.letter ? null : opt.letter
                             }));
                           }}
-                          className={`flex-1 p-3.5 text-left flex items-start gap-3 ${
-                            submitted ? 'cursor-default' : 'cursor-pointer'
-                          }`}
+                          className={`flex-1 p-3.5 text-left flex items-start gap-3 ${submitted ? 'cursor-default' : 'cursor-pointer'
+                            }`}
                         >
                           <span
                             className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5"
@@ -857,9 +1076,8 @@ export default function PlayerPage() {
                             {opt.letter}
                           </span>
                           <span
-                            className={`text-sm leading-relaxed ${
-                              isEliminated && !submitted ? 'line-through opacity-45' : ''
-                            }`}
+                            className={`text-sm leading-relaxed ${isEliminated && !submitted ? 'line-through opacity-45' : ''
+                              }`}
                             style={{ color: 'var(--color-text)' }}
                           >
                             {opt.text}
@@ -984,6 +1202,245 @@ export default function PlayerPage() {
           </div>
         </div>
       </div>
+
+      {/* Fallback Diagnostics & AI Retry Modal */}
+      {fallbackModalOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto"
+            onClick={() => setFallbackModalOpen(false)}
+            style={{ minHeight: '100vh', width: '100vw' }}
+          >
+            <div
+              className="w-full max-w-lg rounded-2xl border p-6 shadow-2xl space-y-5 my-auto"
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                borderColor: 'var(--color-border-strong)',
+                color: 'var(--color-ink)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="fallback-modal-title"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{
+                      backgroundColor: test?.generation_source === 'fallback' ? 'var(--color-warn-soft)' : 'var(--color-correct-soft)',
+                      color: test?.generation_source === 'fallback' ? 'var(--color-warn)' : 'var(--color-correct)'
+                    }}
+                  >
+                    {test?.generation_source === 'fallback' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h3 id="fallback-modal-title" className="font-display text-base font-bold">
+                      {test?.generation_source === 'fallback' ? 'Fallback Generation Diagnostics' : 'Generation Diagnostics & Details'}
+                    </h3>
+                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      Telemetry details &amp; quality notes
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFallbackModalOpen(false)}
+                  className="p-1.5 rounded-lg hover:opacity-75 cursor-pointer"
+                  style={{ color: 'var(--color-text-soft)' }}
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Plain Reason Summary */}
+              <div
+                className="p-3.5 rounded-xl border text-xs leading-relaxed space-y-1"
+                style={{
+                  backgroundColor: 'var(--color-surface-2)',
+                  borderColor: 'var(--color-border)'
+                }}
+              >
+                <span
+                  className="font-semibold block uppercase tracking-wider text-[10px]"
+                  style={{ color: test?.generation_source === 'fallback' ? 'var(--color-warn)' : 'var(--color-correct)' }}
+                >
+                  {test?.generation_source === 'fallback' ? 'Reason Summary' : 'Verification Summary'}
+                </span>
+                <p className="text-sm font-medium" style={{ color: 'var(--color-ink)' }}>
+                  {test?.generation_source === 'fallback' ? plainReason : computeVerificationSentence(test)}
+                </p>
+              </div>
+
+              {/* Diagnostics Grid */}
+              <div
+                className="p-3.5 rounded-xl border text-xs space-y-2 font-mono"
+                style={{
+                  backgroundColor: 'var(--color-bg)',
+                  borderColor: 'var(--color-border)'
+                }}
+              >
+                <div className="flex justify-between py-0.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Model</span>
+                  <span className="font-semibold">{test?.generation_diagnostics?.modelUsed || 'gemini-3.5-flash-lite'}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>HTTP Status</span>
+                  <span>{test?.generation_diagnostics?.httpStatus ?? 'N/A'}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>finishReason</span>
+                  <span>{test?.generation_diagnostics?.finishReason ?? 'N/A'}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Token Usage</span>
+                  <span>
+                    {test?.generation_diagnostics?.tokenUsage
+                      ? `Prompt: ${test.generation_diagnostics.tokenUsage.promptTokens ?? 0} | Cand: ${test.generation_diagnostics.tokenUsage.candidatesTokens ?? 0} | Total: ${test.generation_diagnostics.tokenUsage.totalTokens ?? 0}`
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Questions Returned</span>
+                  <span>{test?.generation_diagnostics?.questionsReturned ?? 0}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Questions Verified</span>
+                  <span>{test?.generation_diagnostics?.questionsPassed ?? 0}</span>
+                </div>
+                <div className="flex justify-between py-0.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                  <span style={{ color: 'var(--color-text-muted)' }}>Reviewer</span>
+                  <span className="font-semibold">
+                    {test?.generation_diagnostics?.reviewerUsed === 'groq'
+                      ? `Groq (${test?.generation_diagnostics?.groqModelUsed || 'Auto'})`
+                      : test?.generation_diagnostics?.reviewerUsed === 'gemini'
+                        ? test?.generation_diagnostics?.groqUnavailable
+                          ? 'Gemini (Groq fallback)'
+                          : 'Gemini'
+                        : 'None'}
+                  </span>
+                </div>
+                {test?.generation_diagnostics?.groqFailureMessage && (
+                  <div className="flex justify-between py-0.5 border-b text-amber-500" style={{ borderColor: 'var(--color-border)' }}>
+                    <span>Groq Status</span>
+                    <span className="text-right text-[11px] max-w-[260px] truncate" title={test.generation_diagnostics.groqFailureMessage}>
+                      {test.generation_diagnostics.groqFailureMessage}
+                    </span>
+                  </div>
+                )}
+                {test?.generation_diagnostics?.flags && test.generation_diagnostics.flags.length > 0 && (
+                  <div className="pt-2 border-t space-y-1.5" style={{ borderColor: 'var(--color-border)' }}>
+                    <span className="text-[11px] font-semibold text-amber-500 block">Quality notes:</span>
+                    <ul className="list-disc pl-4 space-y-1 text-[11px]" style={{ color: 'var(--color-text-soft)' }}>
+                      {(test.generation_diagnostics.flags as string[])
+                        .map((f: string) => formatQualityNote(f))
+                        .filter((note: string | null): note is string => Boolean(note))
+                        .map((note: string, nIdx: number) => (
+                          <li key={nIdx}>{note}</li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+                {test?.generation_diagnostics?.rejectionReasons && test.generation_diagnostics.rejectionReasons.length > 0 && (
+                  <div className="pt-2 border-t space-y-1" style={{ borderColor: 'var(--color-border)' }}>
+                    <span className="text-[11px] font-semibold text-red-500 block">Rejection Details:</span>
+                    <ul className="list-disc pl-4 space-y-0.5 text-[11px]" style={{ color: 'var(--color-text-soft)' }}>
+                      {test.generation_diagnostics.rejectionReasons.map((r: string, rIdx: number) => {
+                        const sanitized = !submitted
+                          ? r.replace(/\b(Main Idea|Inference|Paragraph Function|Tone & Attitude|Strengthen \/ Weaken|Detail & Logic|Vocabulary in Context)\b/gi, 'Question')
+                          : r;
+                        return <li key={rIdx}>{sanitized}</li>;
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Retry Error Alert */}
+              {regenError && (
+                <div
+                  className="p-3 rounded-xl border text-xs leading-relaxed space-y-1"
+                  style={{
+                    backgroundColor: 'var(--color-wrong-soft)',
+                    borderColor: 'var(--color-wrong)',
+                    color: 'var(--color-wrong)'
+                  }}
+                >
+                  <span className="font-bold flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Retry Unsuccessful:
+                  </span>
+                  <p>{regenError}</p>
+                  <p className="text-[11px] opacity-80">Existing questions remain active and unchanged.</p>
+                </div>
+              )}
+
+              {/* AI Retry Call to Action */}
+              {test?.generation_source === 'fallback' && (
+                <div
+                  className="p-3.5 rounded-xl border space-y-1.5 text-xs"
+                  style={{ backgroundColor: 'var(--color-surface-2)', borderColor: 'var(--color-border)' }}
+                >
+                  <p className="font-semibold text-sm" style={{ color: 'var(--color-ink)' }}>
+                    Do you want to regenerate questions with Gemini AI?
+                  </p>
+                  <p style={{ color: 'var(--color-text-muted)' }}>
+                    {hasGeminiKey
+                      ? 'Retries question synthesis using your configured Gemini key. If unsuccessful, your existing questions will be preserved.'
+                      : 'Add your free Google Gemini API key in Profile to enable AI synthesis.'}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleCopyDiagnostics}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border cursor-pointer hover:opacity-80 transition-opacity"
+                  style={{
+                    backgroundColor: 'transparent',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-muted)'
+                  }}
+                >
+                  {copyFeedback ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copyFeedback ? 'Copied!' : 'Copy Details'}</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFallbackModalOpen(false)}
+                    className="px-3.5 py-2 rounded-xl text-xs font-semibold border cursor-pointer hover:opacity-80 transition-colors"
+                    style={{
+                      backgroundColor: 'transparent',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-muted)'
+                    }}
+                  >
+                    {test?.generation_source === 'fallback' ? 'Keep Current Questions' : 'Close'}
+                  </button>
+
+                  {test?.generation_source === 'fallback' && hasGeminiKey && (
+                    <button
+                      type="button"
+                      onClick={handleRegenerateWithAi}
+                      disabled={regenerating}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold rc-btn-primary cursor-pointer disabled:opacity-50"
+                    >
+                      <Sparkles className={`w-3.5 h-3.5 ${regenerating ? 'animate-spin' : ''}`} />
+                      <span>{regenerating ? 'Generating...' : 'Regenerate with AI'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

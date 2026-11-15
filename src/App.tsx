@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { ProfileProvider } from './contexts/ProfileContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
@@ -11,13 +11,12 @@ import PyqPage from './pages/PyqPage';
 import ToolsPage from './pages/ToolsPage';
 import ReportsPage from './pages/ReportsPage';
 import GuidesPage from './pages/GuidesPage';
-import AuthPage from './pages/AuthPage';
 
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
+      <ProfileProvider>
+        <HashRouter>
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1">
@@ -30,14 +29,13 @@ export default function App() {
                 <Route path="/tools" element={<ToolsPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/guides" element={<GuidesPage />} />
-                <Route path="/login" element={<AuthPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
             <Footer />
           </div>
-        </BrowserRouter>
-      </AuthProvider>
+        </HashRouter>
+      </ProfileProvider>
     </ThemeProvider>
   );
 }

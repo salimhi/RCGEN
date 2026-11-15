@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Sun, Moon, Menu, X, LogOut, BarChart3, Sparkles, User as UserIcon } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Sun, Moon, Menu, X, Sparkles, User as UserIcon } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useProfile } from '../contexts/ProfileContext';
+import ProfileModal from './ProfileModal';
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
-  const { user, displayName, signOut } = useAuth();
+  const { displayName } = useProfile();
   const location = useLocation();
-  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   // Hide standard navbar chrome when inside fullscreen Exam Player
   if (location.pathname.startsWith('/test/')) {
@@ -33,7 +33,8 @@ export default function Navbar() {
   };
 
   return (
-    <header
+    <>
+      <header
       className="sticky top-0 z-40 border-b backdrop-blur-md"
       style={{
         backgroundColor: theme === 'dark' ? 'rgba(16, 21, 19, 0.88)' : 'rgba(244, 238, 227, 0.90)',
@@ -142,84 +143,28 @@ export default function Navbar() {
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {user ? (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setAccountOpen((prev) => !prev)}
-                className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border text-sm font-medium cursor-pointer"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  borderColor: 'var(--color-border-strong)',
-                  color: 'var(--color-ink)'
-                }}
-              >
-                <span
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{
-                    backgroundColor: 'var(--color-primary-soft)',
-                    color: 'var(--color-primary)'
-                  }}
-                >
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
-                <span className="hidden sm:inline max-w-[110px] truncate">{displayName}</span>
-              </button>
-
-              {accountOpen && (
-                <div
-                  className="absolute right-0 mt-2 w-56 rounded-2xl p-2 border z-50"
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    borderColor: 'var(--color-border-strong)',
-                    boxShadow: 'var(--shadow-lift)'
-                  }}
-                >
-                  <div className="px-3 py-2 border-b mb-1" style={{ borderColor: 'var(--color-border)' }}>
-                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--color-ink)' }}>
-                      {displayName}
-                    </p>
-                    <p className="text-xs truncate" style={{ color: 'var(--color-text-soft)' }}>
-                      {user.email}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAccountOpen(false);
-                      navigate('/reports');
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-left hover:opacity-80 cursor-pointer"
-                    style={{ color: 'var(--color-text)' }}
-                  >
-                    <BarChart3 className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
-                    <span>My VARC Report Card</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setAccountOpen(false);
-                      await signOut();
-                      navigate('/');
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-left hover:opacity-80 cursor-pointer"
-                    style={{ color: 'var(--color-wrong)' }}
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign out</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold rc-btn-primary"
+          <button
+            type="button"
+            onClick={() => setProfileModalOpen(true)}
+            className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border text-sm font-medium cursor-pointer transition-colors hover:border-[var(--color-primary)]"
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              borderColor: 'var(--color-border-strong)',
+              color: 'var(--color-ink)'
+            }}
+            title="Profile & Settings"
+          >
+            <span
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{
+                backgroundColor: 'var(--color-primary-soft)',
+                color: 'var(--color-primary)'
+              }}
             >
-              <UserIcon className="w-3.5 h-3.5" />
-              <span>Sign in</span>
-            </Link>
-          )}
+              {displayName ? displayName.charAt(0).toUpperCase() : <UserIcon className="w-3.5 h-3.5" />}
+            </span>
+            <span className="hidden sm:inline max-w-[110px] truncate">{displayName || 'Profile'}</span>
+          </button>
 
           {/* Mobile Hamburger */}
           <button
@@ -275,5 +220,8 @@ export default function Navbar() {
         </div>
       )}
     </header>
+
+    <ProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
+  </>
   );
 }

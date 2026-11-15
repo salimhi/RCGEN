@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Check, Clock, X, AlertCircle, RefreshCw } from 'lucide-react';
+import { Sparkles, Check, Clock, X, AlertCircle, RefreshCw, ShieldCheck } from 'lucide-react';
+
+export type GenerationStage = 'reading' | 'writing' | 'checking' | 'saving';
 
 interface GeneratingOverlayProps {
   isGenerating: boolean;
+  stage?: GenerationStage;
   passageText: string;
   examType: 'CAT' | 'GMAT';
   difficulty?: string;
+  engine?: 'gemini' | 'algorithm';
   onCancel: () => void;
   error?: string | null;
   onRetry?: () => void;
 }
 
-const CHECKLIST_STEPS = [
-  'Analyzing passage structure & tone',
-  'Drafting question stems & target skills',
-  'Formulating plausible distractors & traps',
-  'Verifying evidence against passage text'
+const HONEST_STAGES: { id: GenerationStage; label: string; desc: string }[] = [
+  { id: 'reading', label: 'Reading', desc: 'Analyzing thesis, structure, stance & key claims' },
+  { id: 'writing', label: 'Writing questions', desc: 'Drafting stems, options & multi-tier flaw tags' },
+  { id: 'checking', label: 'Checking every answer', desc: 'Blind review pass & independent question repair' },
+  { id: 'saving', label: 'Saving', desc: 'Storing verified exam set to local browser database' }
 ];
 
 const CAT_QUESTION_TYPES = [
@@ -35,9 +39,11 @@ const GMAT_QUESTION_TYPES = [
 
 export default function GeneratingOverlay({
   isGenerating,
+  stage = 'reading',
   passageText,
   examType,
   difficulty = 'Challenging',
+  engine = 'algorithm',
   onCancel,
   error = null,
   onRetry
@@ -45,7 +51,7 @@ export default function GeneratingOverlay({
   const [shouldRender, setShouldRender] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
-  // 1. 700ms Appearance Threshold: Don't flicker for instantaneous responses
+  // 1. 700ms Appearance Threshold
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isGenerating) {
@@ -71,10 +77,14 @@ export default function GeneratingOverlay({
   if (!shouldRender && !error) return null;
 
   const questionTypes = examType === 'GMAT' ? GMAT_QUESTION_TYPES : CAT_QUESTION_TYPES;
-  const currentStep = Math.min(
-    CHECKLIST_STEPS.length,
-    Math.floor(elapsedSeconds / 2.5)
-  );
+
+  const stageOrder: Record<GenerationStage, number> = {
+    reading: 0,
+    writing: 1,
+    checking: 2,
+    saving: 3
+  };
+  const currentStageIndex = stageOrder[stage] ?? 0;
 
   const previewParagraphs = passageText
     .split(/\n\s*\n+/)
@@ -113,7 +123,7 @@ export default function GeneratingOverlay({
                 Building Your {examType} Reading Comprehension Test
               </h2>
               <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                Calibrating {difficulty} difficulty &amp; rigorous option psychometrics
+                Calibrating {difficulty} difficulty &amp; rigorous option psychometrics · <span className="text-amber-600 dark:text-amber-400 font-medium">This can take up to a minute.</span>
               </p>
             </div>
           </div>
@@ -177,164 +187,140 @@ export default function GeneratingOverlay({
                 <button
                   type="button"
                   onClick={onRetry}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold rc-btn-primary flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold rc-btn-primary flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Try Again</span>
+                  <span>Retry Generation</span>
                 </button>
               )}
             </div>
           </div>
         ) : (
-          /* Split Body View */
-          <div className="grid grid-cols-1 md:grid-cols-12 flex-1 overflow-hidden divide-y md:divide-y-0 md:divide-x divide-[var(--color-border)]">
-            {/* Left: Passage Reader with Sweeping Highlight */}
-            <div className="md:col-span-6 p-4 sm:p-5 flex flex-col overflow-hidden relative">
-              <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-[var(--color-border)] shrink-0">
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-primary)' }}>
-                  Passage Analyzer
-                </span>
-                <span className="text-[11px]" style={{ color: 'var(--color-text-soft)' }}>
-                  Active Scan
-                </span>
+          /* Normal Multi-stage Generating Content */
+          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x overflow-y-auto" style={{ borderColor: 'var(--color-border)' }}>
+            {/* Left column: Honest Stage Checklist */}
+            <div className="p-5 sm:p-6 space-y-5">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--color-primary)' }}>
+                  Pipeline Progress
+                </p>
+                <h3 className="font-display font-semibold text-sm sm:text-base" style={{ color: 'var(--color-ink)' }}>
+                  Synthesis &amp; Double-Check Pipeline
+                </h3>
               </div>
 
-              {/* Text viewport with scanning beam */}
-              <div className="relative overflow-hidden flex-1 rounded-xl p-3 border border-[var(--color-border)] bg-[var(--color-bg)] text-xs font-serif leading-relaxed select-none">
-                {/* Visual scan beam */}
-                <div
-                  className="rc-scanner-beam pointer-events-none absolute left-0 right-0 h-16 bg-gradient-to-b from-transparent via-[var(--color-primary-soft)] to-transparent"
-                  aria-hidden="true"
-                />
+              <div className="space-y-3">
+                {HONEST_STAGES.map((s, idx) => {
+                  const isDone = idx < currentStageIndex;
+                  const isCurrent = idx === currentStageIndex;
 
-                <div className="space-y-3 opacity-75">
-                  {previewParagraphs.length > 0 ? (
-                    previewParagraphs.map((para, i) => (
-                      <p
-                        key={i}
-                        className="transition-opacity duration-500"
-                        style={{
-                          color: i <= Math.floor(elapsedSeconds / 2) ? 'var(--color-ink)' : 'var(--color-text-soft)'
-                        }}
-                      >
-                        {para.slice(0, 240)}…
-                      </p>
-                    ))
-                  ) : (
-                    <p style={{ color: 'var(--color-text-soft)' }}>
-                      Evaluating arguments, logical premises, and topic ontology…
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Progress checklist under passage */}
-              <div className="mt-3.5 space-y-1.5 shrink-0">
-                {CHECKLIST_STEPS.map((step, idx) => {
-                  const isDone = idx < currentStep;
-                  const isActive = idx === currentStep;
                   return (
-                    <div key={step} className="flex items-center gap-2 text-xs">
-                      <div
-                        className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 border transition-all"
-                        style={{
-                          backgroundColor: isDone
-                            ? 'var(--color-correct)'
-                            : isActive
-                            ? 'var(--color-primary-soft)'
-                            : 'transparent',
-                          borderColor: isDone
-                            ? 'var(--color-correct)'
-                            : isActive
-                            ? 'var(--color-primary)'
-                            : 'var(--color-border)',
-                          color: isDone ? '#ffffff' : 'var(--color-primary)'
-                        }}
-                      >
+                    <div
+                      key={s.id}
+                      className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
+                        isCurrent
+                          ? 'border-[var(--color-primary)] shadow-sm'
+                          : isDone
+                          ? 'opacity-85 border-transparent bg-black/5 dark:bg-white/5'
+                          : 'opacity-40 border-transparent'
+                      }`}
+                      style={{
+                        backgroundColor: isCurrent ? 'var(--color-primary-soft)' : undefined
+                      }}
+                    >
+                      <div className="mt-0.5 shrink-0">
                         {isDone ? (
-                          <Check className="w-2.5 h-2.5 stroke-[3]" />
-                        ) : isActive ? (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
+                          <div
+                            className="w-5 h-5 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: 'var(--color-correct)', color: '#fff' }}
+                          >
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                        ) : isCurrent ? (
+                          <div
+                            className="w-5 h-5 rounded-full border-2 border-current border-t-transparent animate-spin"
+                            style={{ color: 'var(--color-primary)' }}
+                          />
                         ) : (
-                          <span className="w-1 h-1 rounded-full bg-[var(--color-text-soft)]" />
+                          <div
+                            className="w-5 h-5 rounded-full border border-dashed flex items-center justify-center text-[10px]"
+                            style={{ borderColor: 'var(--color-text-soft)', color: 'var(--color-text-soft)' }}
+                          >
+                            {idx + 1}
+                          </div>
                         )}
                       </div>
-                      <span
-                        style={{
-                          color: isDone
-                            ? 'var(--color-ink)'
-                            : isActive
-                            ? 'var(--color-primary)'
-                            : 'var(--color-text-soft)',
-                          fontWeight: isActive || isDone ? 600 : 400
-                        }}
-                      >
-                        {step}
-                      </span>
+
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--color-ink)' }}>
+                            {s.label}
+                          </p>
+                          {isCurrent && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}>
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+                          {s.desc}
+                        </p>
+                      </div>
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="p-3 rounded-xl border text-[11px] leading-relaxed flex items-center gap-2" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-2)', color: 'var(--color-text-soft)' }}>
+                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                <span>
+                  Every question undergoes independent blind review to guarantee exactly one unambiguous correct key.
+                </span>
               </div>
             </div>
 
-            {/* Right: Shimmering Question Skeleton Cards */}
-            <div className="md:col-span-6 p-4 sm:p-5 flex flex-col overflow-y-auto exam-scroll space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-[var(--color-border)] shrink-0">
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-accent)' }}>
-                  Question Synthesis ({questionTypes.length} Items)
-                </span>
-                <span className="text-[11px]" style={{ color: 'var(--color-text-soft)' }}>
-                  {Math.min(questionTypes.length, Math.floor(elapsedSeconds / 1.8))} / {questionTypes.length} Drafted
-                </span>
-              </div>
+            {/* Right column: Target Question Archetypes & Passage preview */}
+            <div className="p-5 sm:p-6 space-y-5 flex flex-col justify-between" style={{ backgroundColor: 'var(--color-surface-2)' }}>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                  Exam Blueprints
+                </p>
+                <h3 className="font-display font-semibold text-sm sm:text-base mb-3" style={{ color: 'var(--color-ink)' }}>
+                  Question Archetypes for this Passage
+                </h3>
 
-              <div className="space-y-3 flex-1">
-                {questionTypes.map((qType, index) => {
-                  const revealed = index <= Math.floor(elapsedSeconds / 1.8);
-                  return (
+                <div className="space-y-2">
+                  {questionTypes.map((t, idx) => (
                     <div
-                      key={qType}
-                      className="p-3.5 rounded-xl border transition-all duration-500"
+                      key={t}
+                      className="flex items-center justify-between text-xs px-3 py-2 rounded-lg border"
                       style={{
-                        backgroundColor: revealed ? 'var(--color-surface-2)' : 'var(--color-bg)',
-                        borderColor: revealed ? 'var(--color-border-strong)' : 'var(--color-border)',
-                        opacity: revealed ? 1 : 0.45
+                        backgroundColor: 'var(--color-surface)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-ink)'
                       }}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span
-                          className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded"
-                          style={{
-                            backgroundColor: revealed ? 'var(--color-accent-soft)' : 'var(--color-border)',
-                            color: revealed ? 'var(--color-accent)' : 'var(--color-text-soft)'
-                          }}
-                        >
-                          Q{index + 1} · {qType}
-                        </span>
-                        {revealed && (
-                          <span className="text-[10px] font-mono text-[var(--color-correct)] flex items-center gap-1">
-                            <Check className="w-2.5 h-2.5" /> Ready
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Skeleton Stem Lines */}
-                      <div className="space-y-1.5 mb-2.5">
-                        <div className="h-2.5 w-5/6 rounded rc-skeleton-shimmer" />
-                        <div className="h-2.5 w-3/5 rounded rc-skeleton-shimmer" />
-                      </div>
-
-                      {/* Skeleton Options */}
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <div className="h-5 rounded border border-[var(--color-border)] rc-skeleton-shimmer" />
-                        <div className="h-5 rounded border border-[var(--color-border)] rc-skeleton-shimmer" />
-                        <div className="h-5 rounded border border-[var(--color-border)] rc-skeleton-shimmer" />
-                        <div className="h-5 rounded border border-[var(--color-border)] rc-skeleton-shimmer" />
-                      </div>
+                      <span className="font-medium">
+                        Q{idx + 1}. {t}
+                      </span>
+                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text-muted)' }}>
+                        {examType} Standard
+                      </span>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
+
+              {previewParagraphs.length > 0 && (
+                <div className="pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
+                  <p className="text-[11px] font-semibold mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                    Passage Excerpt:
+                  </p>
+                  <p className="text-xs italic line-clamp-3 leading-relaxed" style={{ color: 'var(--color-text-soft)' }}>
+                    "{previewParagraphs[0]}"
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -342,4 +328,3 @@ export default function GeneratingOverlay({
     </div>
   );
 }
-

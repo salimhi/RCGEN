@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Calculator, Gauge, Play, CheckCircle2, RotateCcw, ArrowRight } from 'lucide-react';
 import type { RCGuide, SpeedQuestion } from '../types';
+import speedPassagesData from '../data/speed-passages.json';
 
 function estimateCatVarcPercentile(scaledScore: number): number {
   // Grounded against CAT 2021-2025 VARC score-vs-percentile curves (24 Qs, 72 max)
@@ -29,22 +30,13 @@ export default function ToolsPage() {
   const [slotDifficulty, setSlotDifficulty] = useState<'Tough' | 'Moderate' | 'Easy'>('Moderate');
 
   // Reading Speed Test State
-  const [speedPassages, setSpeedPassages] = useState<RCGuide[]>([]);
+  const [speedPassages, setSpeedPassages] = useState<RCGuide[]>(speedPassagesData as unknown as RCGuide[]);
   const [selectedPassageIdx, setSelectedPassageIdx] = useState(0);
   const [speedPhase, setSpeedPhase] = useState<'ready' | 'reading' | 'quiz' | 'done'>('ready');
   const [startMs, setStartMs] = useState<number>(0);
   const [readSeconds, setReadSeconds] = useState<number>(0);
   const [liveReadTick, setLiveReadTick] = useState<number>(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
-
-  useEffect(() => {
-    fetch('/api/guides?category=speed_passage')
-      .then((r) => r.json())
-      .then((data: RCGuide[]) => {
-        if (Array.isArray(data)) setSpeedPassages(data);
-      })
-      .catch((err) => console.error('Speed passage fetch error:', err));
-  }, []);
 
   useEffect(() => {
     if (speedPhase !== 'reading') return;

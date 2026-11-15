@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BookOpen, ArrowRight, CheckCircle2, Sparkles, Search, Trash2 } from 'lucide-react';
 import type { RCTest, RCAttempt } from '../types';
-import { useAuth } from '../contexts/AuthContext';
+import { getAllLibraryTests } from '../lib/testStore';
+import { getCustomTests, deleteCustomTest, getAttempts } from '../lib/storage';
 
 const TOPICS = [
   'All',
@@ -16,7 +17,6 @@ const TOPICS = [
 
 export default function LibraryPage() {
   const [searchParams] = useSearchParams();
-  const { user, session, guestId } = useAuth();
 
   const [tests, setTests] = useState<RCTest[]>([]);
   const [attempts, setAttempts] = useState<RCAttempt[]>([]);
@@ -28,22 +28,13 @@ export default function LibraryPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'untaken' | 'completed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchLibrary = async () => {
+  const fetchLibrary = () => {
     setLoading(true);
     try {
-      const uid = user?.id || guestId;
-      const [tRes, aRes] = await Promise.all([
-        fetch('/api/tests'),
-        fetch(`/api/attempts?user_id=${encodeURIComponent(uid)}`)
-      ]);
-      if (tRes.ok) {
-        const allTests: RCTest[] = await tRes.json();
-        setTests(allTests.filter((t) => t.category === 'library' || t.category === 'custom'));
-      }
-      if (aRes.ok) {
-        const attData: RCAttempt[] = await aRes.json();
-        setAttempts(attData);
-      }
+      const lib = getAllLibraryTests();
+      const custom = getCustomTests();
+      setTests([...lib, ...custom]);
+      setAttempts(getAttempts());
     } catch (err) {
       console.error('Library fetch error:', err);
     } finally {
@@ -53,10 +44,10 @@ export default function LibraryPage() {
 
   useEffect(() => {
     fetchLibrary();
-  }, [user?.id, guestId]);
+  }, []);
 
   const bestScoreByTest = useMemo(() => {
-    const map = new Map<number, { score: number; max: number }>();
+    const map = new Map<string | number, { score: number; max: number }>();
     for (const att of attempts) {
       const prev = map.get(att.test_id);
       if (!prev || att.score > prev.score) {
@@ -87,23 +78,10 @@ export default function LibraryPage() {
   const completedCount = tests.filter((t) => bestScoreByTest.has(t.id)).length;
   const completionPct = tests.length > 0 ? Math.round((completedCount / tests.length) * 100) : 0;
 
-  const handleDeleteCustom = async (testId: number) => {
+  const handleDeleteCustom = (testId: string | number) => {
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-      const res = await fetch('/api/tests', {
-        method: 'DELETE',
-        headers,
-        body: JSON.stringify({ id: testId })
-      });
-      if (res.ok) {
-        fetchLibrary();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        alert(data.error || 'Failed to delete custom test');
-      }
+      deleteCustomTest(testId);
+      fetchLibrary();
     } catch (err) {
       console.error('Delete test error:', err);
     }

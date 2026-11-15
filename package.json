@@ -5,12 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "plan:stats": "node --experimental-strip-types scripts/plan-stats.mjs",
+    "check:data": "node scripts/check-data.js",
+    "audit:rc": "node --experimental-strip-types scripts/audit-questions.mjs",
+    "prebuild": "npm run check:data",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.99.1",
     "@tailwindcss/vite": "^4.2.1",
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.577.0",

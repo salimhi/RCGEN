@@ -1,212 +1,212 @@
-# PracticeRC — Exam-Grade Reading Comprehension Engine
+# PracticeRC — 100% Static & Local-First Reading Comprehension Platform
 
-PracticeRC turns any pasted article, essay, or URL into an exam-calibrated Reading Comprehension test with structured options, scoring, and per-option explanations for CAT and GMAT Focus aspirants.
+PracticeRC is a 100% static, client-side web application designed for **CAT VARC** and **GMAT Focus** aspirants. It turns any argumentative essay or article into an exam-grade Reading Comprehension test with structured questions, plausible distractors, and per-option explanations.
+
+The app is architected with **zero backend, zero database, and zero server dependencies**, making it ready for instant deployment to **GitHub Pages**.
 
 ---
 
 ## 🌟 Key Features
 
-- **Hybrid Generation Engine**:
-  - **Google Gemini API**: Generates exam questions using structured JSON schema with mandatory phrase evidence verification against passage text.
-  - **Heuristic Fallback Engine**: If Gemini key is absent, times out, rate-limited, or fails verification, the engine gracefully falls back to deterministic rule-based question synthesis without disrupting the user.
-- **Abuse & Cost Controls**:
-  - Dual usage store with SHA-256 salted IP anonymization.
-  - 60 requests/hour total rate limit.
-  - 10 AI generations/hour client cap.
-  - 100 AI generations/day global instance cap.
-- **SSRF-Safe Article Scraper**:
-  - DNS lookup before connection.
-  - Strict blocklist for private, loopback, link-local, and cloud metadata IPs (`169.254.169.254`, `127.0.0.1`, `10.0.0.0/8`, etc.).
-  - Maximum 3 redirects, 8s timeout, 2MB payload cap, and `text/html` validation.
+- **100% Local-First & Private**:
+  - No user accounts and no sign-in required.
+  - All attempt histories, scores, custom tests, and profile nicknames are stored strictly in your browser's `localStorage`.
+- **Bring-Your-Own-Key (BYOK) Gemini AI**:
+  - Add your free Google Gemini API key in the Profile modal (stored locally in your browser).
+  - Client-side direct call to Google's fast `gemini-3.5-flash-lite` model with structured JSON schemas and evidence validation.
+- **Deterministic Rule-Based Question Engine**:
+  - Runs 100% in the browser with zero external dependencies.
+  - Generates exam-calibrated questions (Main Idea, Inference, Paragraph Function, Tone, Strengthen/Weaken) with detailed per-option diagnoses.
+- **Pre-Authored Content Bypass**:
+  - Authored reading comprehension tests in `src/data/library.json` and past papers in `src/data/pyq.json` load directly into the split-screen exam player with zero AI or algorithmic generation.
 - **Split-Screen Exam Player**:
-  - Highlighting tools (Claim in Blue, Pivot in Purple).
-  - Scalable typography (`A-`, `A`, `A+`) with custom Fraunces serif styling.
-  - Generation source indicator (AI Generated vs. Curated Fallback).
+  - Authentic exam interface with dual-thread highlighting (Claim in Blue, Pivot in Purple).
+  - Interactive font size scaling (`A-`, `A`, `A+`).
+  - Strikethrough tool for option elimination.
+  - Pacing timer with pause/resume veil and targeted completion times.
+- **Diagnostic Report Card**:
+  - Calculates accuracy by question archetype (Main Idea, Inference, Function, Tone, Logic).
+  - Reading speed tracker (WPM estimate) and score trajectory across attempts.
+- **CAT Past Year Papers (PYQ) Catalog**:
+  - Structured catalog for CAT 2021–2025 across all slots.
+  - Easy-to-edit static data structure with automated validation.
 
 ---
 
-## 🏗️ Architecture & Code Parity
-
-The application uses **one unified code path** across both local development and Vercel production:
+## 📁 Repository Structure
 
 ```
-├── api/                   # Vercel Serverless Function entry points ONLY
-│   ├── generate-rc.js     # Question generation with AI + fallback
-│   ├── tests.js           # Test catalog retrieval & authenticated delete
-│   ├── pyq.js             # CAT Past Year Questions catalog
-│   ├── live.js            # Daily Live Arena test & leaderboard
-│   ├── attempts.js        # Test submission & rank calculation
-│   └── guides.js          # Reading strategy guides
-├── server/                # Shared backend engine modules
-│   ├── data-layer.js      # Unified persistence (Supabase OR local .data/storage.json)
-│   ├── ai-questions.js    # Gemini API calling, prompt orchestration & validation
-│   ├── rc-prompt.js       # System & user prompt templates (isolated for easy tuning)
-│   ├── usage-store.js     # Rate limiting & caps (Database or local .data/usage.json)
-│   ├── scraper.js         # SSRF-protected safe article fetching
-│   ├── dev-server.js      # Vite dev middleware routing /api/* directly to api/*.js
-│   └── test-api.js        # Automated API test suite
-└── src/                   # React 19 + TypeScript + Vite frontend
+├── .github/workflows/
+│   └── deploy.yml            # GitHub Actions workflow for automatic GitHub Pages deployment
+├── scripts/
+│   ├── check-data.js         # Automated data integrity validator (runs on prebuild)
+│   └── test-generation.js    # Unit tests for rule-based question synthesis
+├── src/
+│   ├── components/           # Navbar, Footer, ProfileModal, GeneratingOverlay
+│   ├── contexts/             # ProfileContext (localStorage state), ThemeContext
+│   ├── data/                 # Static content JSON files (admin authored)
+│   │   ├── library.json      # Curated editorial RC sets (e.g. The Attention Economy)
+│   │   ├── pyq.json          # CAT Past Year Papers catalog (2021–2025)
+│   │   ├── guides.json       # VARC strategy playbooks
+│   │   ├── speed-passages.json # Calibrated reading speed drills
+│   │   └── README.md         # Admin guide & copy-paste JSON templates
+│   ├── lib/
+│   │   ├── storage.ts        # Typed localStorage wrappers with memory fallback
+│   │   ├── testStore.ts      # Test resolver (library -> pyq -> localStorage)
+│   │   ├── geminiClient.ts   # Direct client fetch to Gemini API
+│   │   ├── ruleGenerator.ts  # Browser-native rule-based question generator
+│   │   └── rcPrompt.ts       # CAT/GMAT prompt templates and JSON schemas
+│   ├── pages/                # HomePage, PlayerPage, LibraryPage, PyqPage, ReportsPage, ...
+│   ├── types.ts              # Global TypeScript interfaces
+│   ├── App.tsx               # HashRouter routing for GitHub Pages compatibility
+│   └── main.tsx              # React 19 entry point
+├── vite.config.ts            # Vite config with base: './'
+└── package.json
 ```
 
 ---
 
-## 🚀 Running Locally
+## 🛠️ Adding RCs & Past Papers (Admin Guide)
 
-### Option 1: Standalone Offline Mode (Zero Setup)
-You do **not** need a Supabase account or database to run PracticeRC locally.
-When no Supabase credentials are provided, PracticeRC automatically operates in `local` mode:
-- Data persists in `.data/storage.json`.
-- Rate limiting persists in `.data/usage.json`.
+To add new tests or past papers, edit the JSON files in `src/data/` directly without touching any application code.
 
-1. Clone repository and install dependencies:
+### 1. Adding a Test to `src/data/library.json`
+Add a new object to the array:
+```json
+{
+  "id": "my-essay-slug",
+  "title": "The Title of the Essay",
+  "topic": "Philosophy",
+  "category": "library",
+  "source_label": "Aeon Magazine",
+  "exam_type": "CAT",
+  "difficulty": "Challenging",
+  "target_seconds": 480,
+  "passage_paragraphs": [
+    "First paragraph text...",
+    "Second paragraph text..."
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "type": "Main Idea",
+      "stem": "Which of the following best states the primary purpose of the passage?",
+      "correctLetter": "B",
+      "options": [
+        { "letter": "A", "text": "Wrong option text", "explanation": "Why option A fails." },
+        { "letter": "B", "text": "Correct option text", "explanation": "Why option B is correct." },
+        { "letter": "C", "text": "Wrong option text", "explanation": "Why option C fails." },
+        { "letter": "D", "text": "Wrong option text", "explanation": "Why option D fails." }
+      ]
+    }
+  ]
+}
+```
+
+### 2. Validating Your Data
+Run the automated validator to ensure all JSON files are formatted properly:
+```bash
+npm run check:data
+```
+The validator automatically verifies:
+- Valid JSON syntax.
+- Unique IDs (no `u-` prefix, which is reserved for user-generated tests).
+- 3 to 6 questions per passage.
+- Option letters start at A (A–D for CAT, A–E for GMAT).
+- Every option has non-empty text and explanation.
+- Stems and options contain no forbidden paragraph numbers (e.g. `¶` or `Paragraph 1`).
+
+---
+
+## 🔍 Auditing Questions with a Second AI
+
+PracticeRC includes an automated second-opinion audit tool (`scripts/audit-questions.mjs`) that submits reading comprehension passages and questions to a blind reviewer (Groq Llama 3.3 70B, and optionally Gemini) without the answer key, solving each question to check for ambiguity, flawed distractors, or incorrect answer keys.
+
+The audit script reads API keys strictly from your environment variables and never logs, prints, or saves them to any file.
+
+### Setting API Keys in Windows PowerShell
+
+To set your key securely without echoing it to the screen or leaving it in PowerShell history (kept in session memory only):
+
+```powershell
+# Set Groq API key (required for audit)
+$s = Read-Host "Groq key" -AsSecureString
+$env:GROQ_API_KEY = [System.Net.NetworkCredential]::new("", $s).Password
+
+# (Optional) Set Gemini API key for three-way consensus check
+$s = Read-Host "Gemini key" -AsSecureString
+$env:GEMINI_API_KEY = [System.Net.NetworkCredential]::new("", $s).Password
+
+# Clear the keys from session memory when finished:
+Remove-Item Env:GROQ_API_KEY
+Remove-Item Env:GEMINI_API_KEY
+```
+
+### Running the Audit
+
+```powershell
+# 1. Audit a single test by ID
+npm run audit:rc -- --id the-attention-economy
+
+# 2. Audit all authored questions across library.json and pyq.json
+npm run audit:rc -- --all
+
+# 3. Audit a specific JSON test file
+npm run audit:rc -- --file src/data/library.json
+
+# 4. Three-way consensus audit (compares Stored Key, Groq Reviewer, and Gemini Reviewer)
+npm run audit:rc -- --all --also-gemini
+
+# 5. Non-interactive run (skips the privacy confirmation prompt)
+npm run audit:rc -- --all --yes
+```
+
+Audit reports are automatically saved to `scripts/audit-out/` (which is excluded in `.gitignore`).
+
+### Running the Generator Comparison Benchmark
+
+To run the generation comparison benchmark between the old prompt and the new CAT VARC pipeline across 4 distinct passages:
+
+```powershell
+node scripts/eval-generation.mjs
+```
+
+---
+
+## 💻 Local Development
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repo-url>
+   cd <repo-folder>
+   ```
+
+2. **Install dependencies**:
    ```bash
    npm install
    ```
 
-2. (Optional) Provide your Gemini key in `.env`:
-   ```bash
-   cp .env.example .env
-   # Add your GEMINI_API_KEY
-   ```
-
-3. Start development server:
+3. **Start the local dev server**:
    ```bash
    npm run dev
    ```
+   Open your browser at `http://localhost:5173`.
 
-4. Check your terminal output on startup:
+4. **Build the production bundle**:
+   ```bash
+   npm run build
    ```
-   ==================================================
-   Data mode: local (.data/storage.json)
-   Gemini key loaded: yes (model: gemini-2.5-flash)
-   ==================================================
+   `check:data` runs automatically as a prebuild step.
+
+---
+
+## 🌐 Deploying to GitHub Pages
+
+1. Push your changes on the `main` branch:
+   ```bash
+   git push origin main
    ```
-
----
-
-## ☁️ Deploying to Vercel
-
-1. **Connect Repository**: Import the project into Vercel.
-2. **Configure Environment Variables** in Vercel Project Settings:
-   - `GEMINI_API_KEY`: Your Google AI Studio API key.
-   - `GEMINI_MODEL`: `gemini-2.5-flash`
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL (`https://<project>.supabase.co`).
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase Anon Key.
-   - `SUPABASE_SERVICE_ROLE_KEY`: Your Supabase Service Role Key (used server-side for secure queries).
-   - `LIMIT_SALT`: A random secret string for IP hashing.
-3. **Vercel Settings**:
-   - `vercel.json` automatically configures `maxDuration: 60` for `api/generate-rc.js` and SPA rewrites.
-
----
-
-## 🗄️ Supabase Database Schema & RLS Migrations
-
-When using Supabase in production, execute the following SQL in your Supabase SQL Editor:
-
-```sql
--- 1. Tests Table
-create table if not exists public.rc_tests (
-  id bigint generated by default as identity primary key,
-  slug text unique not null,
-  title text not null,
-  topic text not null,
-  source_label text default 'Custom Pasted Essay',
-  category text default 'custom',
-  exam_type text default 'CAT',
-  difficulty text default 'Challenging',
-  pyq_year integer,
-  pyq_slot integer,
-  word_count integer default 0,
-  target_seconds integer default 480,
-  passage_paragraphs jsonb not null default '[]'::jsonb,
-  questions jsonb not null default '[]'::jsonb,
-  is_live_featured boolean default false,
-  live_date date,
-  created_by text default 'guest',
-  generation_source text,
-  generation_reason text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- 2. Attempts Table
-create table if not exists public.rc_attempts (
-  id bigint generated by default as identity primary key,
-  test_id bigint references public.rc_tests(id) on delete cascade,
-  user_id text default 'guest',
-  user_name text default 'Guest Aspirant',
-  exam_type text default 'CAT',
-  score integer default 0,
-  max_score integer default 12,
-  correct_count integer default 0,
-  wrong_count integer default 0,
-  unattempted_count integer default 0,
-  total_questions integer default 4,
-  time_seconds integer default 0,
-  wpm_estimate integer default 220,
-  answers jsonb default '{}'::jsonb,
-  type_breakdown jsonb default '[]'::jsonb,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- 3. PYQ Catalog Table
-create table if not exists public.rc_pyq_catalog (
-  id bigint generated by default as identity primary key,
-  year integer not null,
-  slot integer not null,
-  passage_num integer not null,
-  title text not null,
-  topic text not null,
-  source_work text,
-  approx_words integer default 500,
-  linked_test_id bigint references public.rc_tests(id) on delete set null
-);
-
--- 4. Guides Table
-create table if not exists public.rc_guides (
-  id bigint generated by default as identity primary key,
-  slug text unique not null,
-  title text not null,
-  category text not null,
-  summary text not null,
-  content text not null,
-  read_time_minutes integer default 5
-);
-
--- 5. Generation Log Table (For Rate Limiting & Abuse Prevention)
-create table if not exists public.rc_generation_log (
-  id bigint generated by default as identity primary key,
-  client_key text not null,
-  used_ai boolean default false,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
-create index if not exists idx_gen_log_client_time on public.rc_generation_log (client_key, created_at);
-create index if not exists idx_gen_log_ai_time on public.rc_generation_log (used_ai, created_at);
-
--- 6. Row Level Security Policies
-alter table public.rc_tests enable row level security;
-alter table public.rc_attempts enable row level security;
-alter table public.rc_pyq_catalog enable row level security;
-alter table public.rc_guides enable row level security;
-alter table public.rc_generation_log enable row level security;
-
--- Public Read for Tests, Catalog and Guides
-create policy "Public can read tests" on public.rc_tests for select using (true);
-create policy "Public can read pyq" on public.rc_pyq_catalog for select using (true);
-create policy "Public can read guides" on public.rc_guides for select using (true);
-create policy "Public can read attempts" on public.rc_attempts for select using (true);
-
--- Authenticated Users can only delete their own custom tests
-create policy "Users can delete own custom tests" on public.rc_tests
-  for delete using (auth.uid()::text = created_by and category = 'custom');
-```
-
----
-
-## 🧪 Automated Testing
-
-Run the test suite verifying all 5 core test cases (Science, Economics, Narrative, fallback without key, rate limiter / caps, and SSRF prevention):
-
-```bash
-node server/test-api.js
-```
+2. In your GitHub repository:
+   - Navigate to **Settings** → **Pages**.
+   - Under **Build and deployment** → **Source**, select **GitHub Actions**.
+3. The `.github/workflows/deploy.yml` workflow will automatically validate your data, build the static site, and publish it to `https://<username>.github.io/<repository-name>/`.

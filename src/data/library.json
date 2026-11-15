@@ -1,0 +1,304 @@
+[
+  {
+    "id": "the-attention-economy",
+    "slug": "the-attention-economy-cat-sample",
+    "title": "The Attention Economy and Cognitive Commons",
+    "topic": "Technology & AI",
+    "source_label": "PracticeRC Editorial",
+    "category": "library",
+    "exam_type": "CAT",
+    "difficulty": "Challenging",
+    "word_count": 512,
+    "target_seconds": 480,
+    "is_live_featured": true,
+    "generation_source": null,
+    "generation_reason": null,
+    "passage_paragraphs": [
+      "Discussions of modern digital technology routinely begin from a reassuringly linear premise: that expanding access to networked information democratizes knowledge and levels epistemic playing fields. Across much of contemporary platform design, that expectation has functioned less as an empirical finding than as an organizing faith. To a point, the faith is understandable. Networked repositories do eliminate physical barriers to information, and no serious educator proposes a return to pre-digital gatekeeping. What the linear view obscures, however, is that expanding the sheer volume of stimuli frequently degrades the cognitive conditions required to evaluate it.",
+      "This divergence is not an accidental byproduct of user indiscipline; it follows from the commercial architecture of attention extraction itself. Whenever platform profitability depends on engagement metrics rather than conceptual understanding, algorithms inevitably optimize for reflexive emotional capture rather than deliberative scrutiny. Analysts who evaluate platform health purely by operational activity treat as vibrant civic discourse what is, in truth, manufactured volatility. Were the problem merely lack of digital literacy, instructional modules would resolve it. Because the tension concerns how platform architectures systematically penalize quiet reflection, additional screen time often deepens cognitive fragmentation instead of correcting it.",
+      "Historical parallels illuminate the underlying dynamic. Earlier transformations in communication—from the rapid spread of the printing press to the emergence of mass-market tabloids—were accompanied by utopian assurances that cheaper print would depoliticize dispute and enlighten the public. Yet the historical record reveals almost the opposite trajectory: whenever the cost of publishing plummeted without corresponding developments in verification institutions, polarization and sensationalist panic intensified. What altered over time was not the presence of human curiosity, but the institutional incentives under which that curiosity was commodified.",
+      "Defenders of engagement-driven ranking reply that algorithmic feeds merely reflect authentic public demand: users get what they click on. That defence carries superficial weight, but it conflates instinctive impulse with reflective preference. What cannot easily be monetized—deep contemplative reading, nuanced synthesis, and second-order doubt—drops out of algorithmic curation, acquiring the false appearance of obsolescence simply because it resists neat monetization.",
+      "The deeper lesson regarding the attention economy is therefore neither uncritical technophilia nor fatalistic luddism. Rather, healthy democratic inquiry requires recognizing that attention is an exhaustible ecological commons: whenever platforms enclose that commons for private yield, the resulting cognitive exhaustion threatens the very deliberation upon which self-governing societies depend."
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "Main Idea",
+        "subtype": "Primary purpose",
+        "stem": "Which of the following best states the primary purpose of the passage?",
+        "correctLetter": "B",
+        "options": [
+          {
+            "letter": "A",
+            "text": "To catalogue recent empirical breakthroughs in platform design and show that print institutions are wholly obsolete.",
+            "flawTag": "extreme",
+            "explanation": "Wrong — The passage explicitly cautions against treating prior frameworks as obsolete, focusing instead on structural limits."
+          },
+          {
+            "letter": "B",
+            "text": "To challenge an overly simplified view of digital democratization by explaining how commercial attention extraction degrades cognitive evaluation.",
+            "explanation": "Correct — Captures the full arc of the passage from critique of the linear premise to the underlying structural mechanism."
+          },
+          {
+            "letter": "C",
+            "text": "To prove that information overload stems primarily from individual cognitive weakness rather than institutional designs.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — Reverses the author's argument; the author emphasizes structural platform architecture over individual fault."
+          },
+          {
+            "letter": "D",
+            "text": "To advocate abandoning digital communication entirely in favour of pre-modern oral traditions.",
+            "flawTag": "scope",
+            "explanation": "Wrong — Rejects extreme fatalism and luddism in Paragraph 5."
+          }
+        ]
+      },
+      {
+        "id": "q2",
+        "type": "Inference",
+        "subtype": "Can be inferred",
+        "stem": "Based on the passage, which of the following can most reasonably be inferred regarding digital platform metrics?",
+        "correctLetter": "C",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Platform engineers have deliberately sabotaged user literacy to prevent regulation.",
+            "flawTag": "distortion",
+            "explanation": "Wrong — Attributes deliberate sabotage rather than systemic economic incentives."
+          },
+          {
+            "letter": "B",
+            "text": "High engagement statistics automatically indicate healthy intellectual discourse.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — Directly contradicts Paragraph 2, which argues engagement metrics optimize for emotional capture."
+          },
+          {
+            "letter": "C",
+            "text": "A platform can report robust operational engagement while actively eroding deep conceptual reflection.",
+            "explanation": "Correct — Follows directly from the author's analysis in Paragraph 2 and Paragraph 4."
+          },
+          {
+            "letter": "D",
+            "text": "No historical medium prior to the internet ever commodified human curiosity.",
+            "flawTag": "extreme",
+            "explanation": "Wrong — Fails on the absolute quantifier \"no historical medium\"; Paragraph 3 notes print tabloids did the same."
+          }
+        ]
+      },
+      {
+        "id": "q3",
+        "type": "Paragraph Function",
+        "subtype": "Role of a paragraph",
+        "stem": "In the context of the passage as a whole, the paragraph that begins \"Historical parallels illuminate the underlying dynamic\" primarily serves to:",
+        "correctLetter": "A",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Contextualize the central argument by showing that institutional shifts in media historically produced similar tensions.",
+            "explanation": "Correct — Uses the historical emergence of print to demonstrate that commodified media volatility is not a unique modern aberration."
+          },
+          {
+            "letter": "B",
+            "text": "Retract the critique of digital platforms and praise modern algorithms over print media.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — The author does not retract the critique; the paragraph reinforces the argument."
+          },
+          {
+            "letter": "C",
+            "text": "Provide an exhaustive statistical record of literacy rates from the Renaissance to the present.",
+            "flawTag": "distortion",
+            "explanation": "Wrong — The paragraph contains no exhaustive statistical tables; it is a conceptual historical parallel."
+          },
+          {
+            "letter": "D",
+            "text": "Summarize personal biographical anecdotes of early newspaper editors.",
+            "flawTag": "scope",
+            "explanation": "Wrong — The focus is systemic, not personal gossip or biographical trivia."
+          }
+        ]
+      },
+      {
+        "id": "q4",
+        "type": "Tone & Attitude",
+        "subtype": "Attitude",
+        "stem": "The author's attitude toward engagement-driven ranking models is best described as:",
+        "correctLetter": "D",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Polemical hostility that dismisses all technological progress as moral degeneration.",
+            "flawTag": "distortion",
+            "explanation": "Wrong — Too hostile; the author explicitly disavows \"fatalistic luddism\"."
+          },
+          {
+            "letter": "B",
+            "text": "Unqualified endorsement that celebrates market efficiency without reservation.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — Directly opposite to the passage's critical stance."
+          },
+          {
+            "letter": "C",
+            "text": "Dispassionate neutrality that presents competing arguments without taking a stance.",
+            "flawTag": "scope",
+            "explanation": "Wrong — The author clearly argues that attention is an endangered commons."
+          },
+          {
+            "letter": "D",
+            "text": "Measured analytical critique that acknowledges superficial benefits while exposing deeper structural flaws.",
+            "explanation": "Correct — Concedes partial utility while thoroughly diagnosing structural risks."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "power-in-language",
+    "slug": "power-in-language",
+    "title": "Power in language",
+    "topic": "History & Culture",
+    "source_label": "CAT RC Practice",
+    "category": "library",
+    "exam_type": "CAT",
+    "difficulty": "Challenging",
+    "word_count": 744,
+    "target_seconds": 600,
+    "is_live_featured": false,
+    "generation_source": null,
+    "generation_reason": null,
+    "passage_paragraphs": [
+      "The first systems of writing developed and used by the Germanic peoples were runic alphabets. The runes functioned as letters, but they were much more than just letters in the sense in which we today understand the term. Each rune was an ideographic or pictographic symbol of some cosmological principle or power, and to write a rune was to invoke and direct the force for which it stood. Indeed, in every Germanic language, the word “rune” (from Proto-Germanic *runo) means both “letter” and “secret” or “mystery,” and its original meaning, which likely predated the adoption of the runic alphabet, may have been simply “(hushed) message.”",
+      "Each rune had a name that hinted at the philosophical and magical significance of its visual form and the sound for which it stands, which was almost always the first sound of the rune’s name. For example, the T-rune, called *Tiwaz in the Proto-Germanic language, is named after the god Tiwaz (known as Tyr in the Viking Age). Tiwaz was perceived to dwell within the daytime sky, and, accordingly, the visual form of the T-rune is an arrow pointed upward (which surely also hints at the god’s martial role). The T-rune was often carved as a standalone ideograph, apart from the writing of any particular word, as part of spells cast to ensure victory in battle.",
+      "The runic alphabets are called “futharks” after the first six runes (Fehu, Uruz, Thurisaz, Ansuz, Raidho, Kaunan), in much the same way that the word “alphabet” comes from the names of the first two Hebrew letters (Aleph, Beth). There are three principal futharks: the 24-character Elder Futhark, the first fully-formed runic alphabet, whose development had begun by the first century CE and had been completed before the year 400; the 16-character Younger Futhark, which began to diverge from the Elder Futhark around the beginning of the Viking Age (c. 750 CE) and eventually replaced that older alphabet in Scandinavia; and the 33-character Anglo-Saxon Futhorc, which gradually altered and added to the Elder Futhark in England. On some inscriptions, the twenty-four runes of the Elder Futhark were divided into three ættir (Old Norse, “families”) of eight runes each, but the significance of this division is unfortunately unknown.",
+      "Runes were traditionally carved onto stone, wood, bone, metal, or some similarly hard surface rather than drawn with ink and pen on parchment. This explains their sharp, angular form, which was well-suited to the medium.",
+      "Much of our current knowledge of the meanings the ancient Germanic peoples attributed to the runes comes from the three “Rune Poems,” documents from Iceland, Norway, and England that provide a short stanza about each rune in their respective futharks (the Younger Futhark is treated in the Icelandic and Norwegian Rune Poems, while the Anglo-Saxon Futhorc is discussed in the Old English Rune Poem).",
+      "While runologists argue over many of the details of the historical origins of runic writing, there is widespread agreement on a general outline. The runes are presumed to have been derived from one of the many Old Italic alphabets in use among the Mediterranean peoples of the first century CE, who lived to the south of the Germanic tribes. Earlier Germanic sacred symbols, such as those preserved in northern European petroglyphs, were also likely influential in the development of the script.",
+      "The earliest possibly runic inscription is found on the Meldorf brooch, which was manufactured in the north of modern-day Germany around 50 CE. The inscription is highly ambiguous, however, and scholars are divided over whether its letters are runic or Roman. The earliest unambiguous runic inscriptions are found on the Vimose comb from Vimose, Denmark and the Øvre Stabu spearhead from southern Norway, both of which date to approximately 160 CE. The earliest known carving of the entire futhark, in order, is that on the Kylver stone from Gotland, Sweden, which dates to roughly 400 CE.",
+      "The transmission of writing from southern Europe to northern Europe likely took place via Germanic warbands, the dominant northern European military institution of the period, who would have encountered Italic writing firsthand during campaigns amongst their southerly neighbors. This hypothesis is supported by the association that runes have always had with the god Odin, who, in the Proto-Germanic period, under his original name *Woðanaz, was the divine model of the human warband leader and the invisible patron of the warband’s activities. The Roman historian Tacitus tells us that Odin (“Mercury” in the interpretatio romana) was already established as the dominant god in the pantheons of many of the Germanic tribes by the first century.",
+      "From the perspective of the ancient Germanic peoples themselves, however, the runes came from no source as mundane as an Old Italic alphabet. The runes were never “invented,” but are instead eternal, pre-existent forces that Odin himself discovered by undergoing a tremendous ordeal."
+    ],
+    "questions": [
+      {
+        "id": "q1",
+        "type": "Vocabulary in Context",
+        "subtype": "Phrase meaning",
+        "stem": "In the context of the passage, the word “pantheon” refers to:",
+        "correctLetter": "B",
+        "options": [
+          {
+            "letter": "A",
+            "text": "A temple of all the gods.",
+            "flawTag": "distortion",
+            "explanation": "Incorrect — While a Pantheon can denote a physical classical temple dedicated to all gods, in the phrase \"pantheons of many of the Germanic tribes\" it denotes an abstract collective body of deities."
+          },
+          {
+            "letter": "B",
+            "text": "All the gods collectively of a religion.",
+            "explanation": "Correct — Tacitus observes that Odin was established as the dominant god within the pantheons (the collective body/assembly of gods) of many Germanic tribes."
+          },
+          {
+            "letter": "C",
+            "text": "A monument or building commemorating a nation's dead heroes.",
+            "flawTag": "scope",
+            "explanation": "Incorrect — Conflates the mythological meaning of divine assembly with a secular civic monument commemorating national heroes."
+          },
+          {
+            "letter": "D",
+            "text": "A domed circular temple at Rome, erected a.d. 120–124 by Hadrian.",
+            "flawTag": "irrelevant",
+            "explanation": "Incorrect — Refers to the specific historical monument in Rome rather than the general mythological meaning of the word in religious history."
+          }
+        ]
+      },
+      {
+        "id": "q2",
+        "type": "Detail & Logic",
+        "subtype": "According to the passage (EXCEPT)",
+        "stem": "Which of the following statements is INCORRECT based on the passage?",
+        "correctLetter": "C",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Unlike the Latin alphabet, which is an essentially utilitarian script, the runes are symbols of some of the most powerful forces in the cosmos.",
+            "explanation": "Incorrect as an answer — Accurately reflects the passage, which states runes were not mere utilitarian letters but ideographic symbols of cosmological principles and power."
+          },
+          {
+            "letter": "B",
+            "text": "Runic writing was probably first used in southern Europe and was carried north by Germanic tribes.",
+            "explanation": "Incorrect as an answer — Supported by the text, which notes that transmission of writing likely took place via Germanic warbands who encountered Italic writing during southern campaigns."
+          },
+          {
+            "letter": "C",
+            "text": "The word “rune” and its meaning was derived from the runic alphabet.",
+            "explanation": "Correct (the statement is false) — Paragraph 1 specifies that the original meaning of the word \"rune\" (\"secret\", \"mystery\", or \"hushed message\") \"likely predated the adoption of the runic alphabet\", rather than being derived from it."
+          },
+          {
+            "letter": "D",
+            "text": "The first runic alphabets date back to the 1st century CE.",
+            "explanation": "Incorrect as an answer — Paragraph 3 confirms that development of the Elder Futhark \"had begun by the first century CE\"."
+          }
+        ]
+      },
+      {
+        "id": "q3",
+        "type": "Inference",
+        "subtype": "Can be inferred",
+        "stem": "Which of the following can be inferred from the passage?\n\nI. Runic script was most likely derived from Old Italic script.\nII. Runes were not used so much as a simple writing system, but rather as magical signs to be used for charms.\nIII. In the Proto-Germanic period, the god Tiwaz was associated with war, victory, marriage and the diurnal sky.\nIV. The knowledge of the meanings attributed to the runes of the Younger Futhark is derived from the three Rune poems.",
+        "correctLetter": "D",
+        "options": [
+          {
+            "letter": "A",
+            "text": "All the above",
+            "flawTag": "distortion",
+            "explanation": "Incorrect — Statement IV is false; the text states that the Younger Futhark is treated in only two Rune Poems (Icelandic and Norwegian), while the Anglo-Saxon Futhorc is discussed in the third (Old English)."
+          },
+          {
+            "letter": "B",
+            "text": "ii and iv",
+            "flawTag": "opposite",
+            "explanation": "Incorrect — Statement IV is contradicted by the passage. The Younger Futhark is not discussed in all three poems."
+          },
+          {
+            "letter": "C",
+            "text": "i, ii and iv",
+            "flawTag": "scope",
+            "explanation": "Incorrect — Includes statement IV, which incorrectly claims the Younger Futhark is treated in all three poems."
+          },
+          {
+            "letter": "D",
+            "text": "i and iii",
+            "explanation": "Correct — Statement I is directly supported by paragraph 6 (\"runes are presumed to have been derived from one of the many Old Italic alphabets\"). Statement IV is factually contradicted by the passage, ruling out options A, B, and C. Thus (i and iii) is the only valid combination."
+          }
+        ]
+      },
+      {
+        "id": "q4",
+        "type": "Inference",
+        "subtype": "Cannot be inferred (EXCEPT)",
+        "stem": "Which of the following CANNOT be reasonably inferred with regard to the beliefs of the Proto-Germanic people?",
+        "correctLetter": "B",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Odin came upon the runes after going through a lot of torment.",
+            "explanation": "Incorrect as an answer — Supported by the text, which states that Odin discovered the eternal, pre-existent runes \"by undergoing a tremendous ordeal\"."
+          },
+          {
+            "letter": "B",
+            "text": "The name of a rune was almost always the first sound of a God’s name.",
+            "explanation": "Correct (cannot be inferred) — The text states that the sound the rune represents was almost always the first sound of the rune's own name, NOT that runes were named after gods. Most runes were named after ordinary or cosmological concepts (such as cattle, journeys, etc.), with only specific ones like Tiwaz named after deities."
+          },
+          {
+            "letter": "C",
+            "text": "The cosmological power represented by a rune was invoked by writing it.",
+            "explanation": "Incorrect as an answer — Supported by paragraph 1, which states that \"to write a rune was to invoke and direct the force for which it stood\"."
+          },
+          {
+            "letter": "D",
+            "text": "Proto-German Gods were modeled on humans.",
+            "explanation": "Incorrect as an answer — Supported by paragraph 8, which explains that Odin/Woðanaz was viewed as \"the divine model of the human warband leader\"."
+          }
+        ]
+      }
+    ]
+  }
+]

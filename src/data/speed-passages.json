@@ -1,0 +1,41 @@
+[
+  {
+    "id": "speed-drill-1",
+    "slug": "speed-drill-1",
+    "category": "speed_passage",
+    "eyebrow": "DIAGNOSTIC BENCHMARK",
+    "title": "Scientific Idealization and Boundary Conditions",
+    "summary": "A calibrated 160-word passage to benchmark reading speed and comprehension accuracy.",
+    "read_minutes": 2,
+    "content_blocks": {
+      "wordCount": 160,
+      "paragraphs": [
+        "Discussions of complex systems routinely begin from an assumption of equilibrium: that once observers account for primary inputs, systemic outputs will settle into predictable patterns. Across much of modern quantitative modeling, that expectation functions as an organizing faith.",
+        "What the equilibrium view obscures, however, is that real-world networks exhibit cascading disruptions when key nodes fail. Expanding measurement accuracy does not eliminate these feedback loops; rather, it reveals how fragile tightly coupled systems truly are."
+      ],
+      "questions": [
+        {
+          "q": "What is the primary assumption challenged by the author in the passage?",
+          "options": [
+            "That complex systems naturally converge toward predictable equilibrium.",
+            "That quantitative data is useless in all fields.",
+            "That modern scientists refuse to use computers.",
+            "That measuring networks always prevents disruption."
+          ],
+          "correctIndex": 0
+        },
+        {
+          "q": "According to the second paragraph, what happens when tightly coupled networks face shocks?",
+          "options": [
+            "They immediately stabilize due to redundant nodes.",
+            "Local disruptions can cascade nonlinearly rather than averaging out.",
+            "Measurement errors completely disappear.",
+            "The system transforms into a linear structure."
+          ],
+          "correctIndex": 1
+        }
+      ]
+    }
+  }
+]
+
