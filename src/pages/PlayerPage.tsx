@@ -22,7 +22,9 @@ import {
   Cpu,
   Copy,
   Check,
-  X
+  X,
+  BookOpen,
+  FileText
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import type { RCTest, RCAttempt } from '../types';
@@ -567,7 +569,7 @@ export default function PlayerPage() {
           </button>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <span
                 className="px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0"
                 style={{
@@ -578,7 +580,7 @@ export default function PlayerPage() {
                 {test.exam_type === 'CAT' ? 'CAT +3 / −1' : 'GMAT A–E'}
               </span>
               {renderGenerationBadge()}
-              <h1 className="text-sm font-semibold truncate" style={{ color: 'var(--color-ink)' }}>
+              <h1 className="text-xs sm:text-sm font-semibold truncate max-w-[120px] sm:max-w-xs md:max-w-md" style={{ color: 'var(--color-ink)' }}>
                 {test.title}
               </h1>
             </div>
@@ -718,30 +720,34 @@ export default function PlayerPage() {
 
       {/* Mobile Pane Switcher */}
       <div
-        className="lg:hidden grid grid-cols-2 border-b text-xs font-semibold shrink-0"
+        className="lg:hidden grid grid-cols-2 border-b text-xs font-semibold shrink-0 shadow-xs"
         style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
       >
         <button
           type="button"
           onClick={() => setMobilePane('passage')}
-          className="py-2.5 text-center border-b-2 cursor-pointer"
+          className="py-3 text-center border-b-2 cursor-pointer transition-colors flex items-center justify-center gap-1.5"
           style={{
             borderColor: mobilePane === 'passage' ? 'var(--color-primary)' : 'transparent',
+            backgroundColor: mobilePane === 'passage' ? 'var(--color-primary-soft)' : 'transparent',
             color: mobilePane === 'passage' ? 'var(--color-primary)' : 'var(--color-text-muted)'
           }}
         >
-          Passage ({test.passage_paragraphs.length} paras)
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>Passage ({test.passage_paragraphs.length} paras)</span>
         </button>
         <button
           type="button"
           onClick={() => setMobilePane('questions')}
-          className="py-2.5 text-center border-b-2 cursor-pointer"
+          className="py-3 text-center border-b-2 cursor-pointer transition-colors flex items-center justify-center gap-1.5"
           style={{
             borderColor: mobilePane === 'questions' ? 'var(--color-primary)' : 'transparent',
+            backgroundColor: mobilePane === 'questions' ? 'var(--color-primary-soft)' : 'transparent',
             color: mobilePane === 'questions' ? 'var(--color-primary)' : 'var(--color-text-muted)'
           }}
         >
-          {submitted ? 'Score & Explanations' : `Questions (${answeredCount}/${test.questions.length})`}
+          <FileText className="w-3.5 h-3.5" />
+          <span>{submitted ? 'Score & Review' : `Questions (${answeredCount}/${test.questions.length})`}</span>
         </button>
       </div>
 
@@ -787,10 +793,10 @@ export default function PlayerPage() {
               </div>
             )}
 
-            <h1 className="font-display text-[32px] font-bold mb-2 leading-tight text-left" style={{ color: 'var(--color-ink)' }}>
+            <h1 className="font-display text-2xl sm:text-[32px] font-bold mb-2 leading-tight text-left" style={{ color: 'var(--color-ink)' }}>
               {test.title}
             </h1>
-            <div className="text-xs mb-6 text-left flex flex-wrap items-center gap-2 font-medium" style={{ color: 'var(--color-text-muted)' }}>
+            <div className="text-xs mb-4 text-left flex flex-wrap items-center gap-2 font-medium" style={{ color: 'var(--color-text-muted)' }}>
               <span>{test.word_count} words</span>
               <span>·</span>
               <span>{test.passage_paragraphs.length} paragraphs</span>
@@ -808,6 +814,31 @@ export default function PlayerPage() {
                   {renderGenerationBadge()}
                 </>
               )}
+            </div>
+
+            {/* Mobile Font Size Controls */}
+            <div className="flex lg:hidden items-center justify-between pb-3 mb-5 border-b text-xs" style={{ borderColor: 'var(--color-border)' }}>
+              <span className="font-semibold" style={{ color: 'var(--color-text-muted)' }}>Passage Text Size:</span>
+              <div
+                className="flex items-center p-0.5 rounded-xl border text-xs font-semibold"
+                style={{ backgroundColor: 'var(--color-surface-2)', borderColor: 'var(--color-border)' }}
+              >
+                {(['sm', 'md', 'lg'] as const).map((sz, idx) => (
+                  <button
+                    key={sz}
+                    type="button"
+                    onClick={() => setFontScale(sz)}
+                    className="px-3 py-1 rounded-lg cursor-pointer font-bold transition-all"
+                    style={{
+                      backgroundColor: fontScale === sz ? 'var(--color-surface)' : 'transparent',
+                      color: fontScale === sz ? 'var(--color-primary)' : 'var(--color-text-soft)',
+                      boxShadow: fontScale === sz ? 'var(--shadow-soft)' : 'none'
+                    }}
+                  >
+                    {idx === 0 ? 'A-' : idx === 1 ? 'A' : 'A+'}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div
@@ -828,16 +859,43 @@ export default function PlayerPage() {
                 </p>
               ))}
             </div>
+
+            {/* Mobile Bottom Quick Action: Switch to Questions */}
+            <div className="lg:hidden mt-8 pt-6 border-t flex flex-col gap-2" style={{ borderColor: 'var(--color-border)' }}>
+              <button
+                type="button"
+                onClick={() => setMobilePane('questions')}
+                className="w-full py-3.5 px-4 rounded-xl text-sm font-semibold rc-btn-primary flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              >
+                <span>{submitted ? 'View Explanations & Score' : `Solve Questions (${answeredCount}/${test.questions.length})`}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* RIGHT PANE: Question Palette & Post-Submit Per-Option Explanations */}
         <div
-          className={`lg:col-span-5 overflow-y-auto exam-scroll p-5 sm:p-7 flex flex-col justify-between ${mobilePane === 'passage' ? 'hidden lg:flex' : 'flex'
+          className={`lg:col-span-5 overflow-y-auto exam-scroll p-4 sm:p-7 flex flex-col justify-between ${mobilePane === 'passage' ? 'hidden lg:flex' : 'flex'
             }`}
           style={{ backgroundColor: 'var(--color-bg)' }}
         >
           <div className="space-y-5">
+            {/* Mobile Back-to-Passage Button */}
+            <div className="lg:hidden flex items-center justify-between pb-2 border-b" style={{ borderColor: 'var(--color-border)' }}>
+              <button
+                type="button"
+                onClick={() => setMobilePane('passage')}
+                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-semibold rc-btn-secondary cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>← Read Passage</span>
+              </button>
+              <span className="text-[11px] font-medium" style={{ color: 'var(--color-text-soft)' }}>
+                Question {currentIdx + 1} of {test.questions.length}
+              </span>
+            </div>
+
             {/* Post-Submit Scorecard Banner */}
             {submitted && resultMetrics && (
               <div

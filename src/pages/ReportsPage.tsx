@@ -136,43 +136,43 @@ export default function ReportsPage() {
       ) : (
         <>
           {/* KPI Summary Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rc-card p-5">
-              <div className="flex items-center justify-between text-xs mb-2" style={{ color: 'var(--color-text-soft)' }}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="rc-card p-3.5 sm:p-5">
+              <div className="flex items-center justify-between text-xs mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-soft)' }}>
                 <span>Sets Completed</span>
                 <BarChart3 className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
               </div>
-              <div className="font-display text-3xl font-bold" style={{ color: 'var(--color-ink)' }}>
+              <div className="font-display text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-ink)' }}>
                 {analytics.setsCount}
               </div>
             </div>
 
-            <div className="rc-card p-5">
-              <div className="flex items-center justify-between text-xs mb-2" style={{ color: 'var(--color-text-soft)' }}>
+            <div className="rc-card p-3.5 sm:p-5">
+              <div className="flex items-center justify-between text-xs mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-soft)' }}>
                 <span>Overall Accuracy</span>
                 <Target className="w-4 h-4" style={{ color: 'var(--color-correct)' }} />
               </div>
-              <div className="font-display text-3xl font-bold" style={{ color: 'var(--color-correct)' }}>
+              <div className="font-display text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-correct)' }}>
                 {analytics.accuracy}%
               </div>
             </div>
 
-            <div className="rc-card p-5">
-              <div className="flex items-center justify-between text-xs mb-2" style={{ color: 'var(--color-text-soft)' }}>
+            <div className="rc-card p-3.5 sm:p-5">
+              <div className="flex items-center justify-between text-xs mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-soft)' }}>
                 <span>Avg Net Score (CAT /12)</span>
                 <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
               </div>
-              <div className="font-display text-3xl font-bold" style={{ color: 'var(--color-ink)' }}>
+              <div className="font-display text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-ink)' }}>
                 {analytics.avgCatEquiv}
               </div>
             </div>
 
-            <div className="rc-card p-5">
-              <div className="flex items-center justify-between text-xs mb-2" style={{ color: 'var(--color-text-soft)' }}>
+            <div className="rc-card p-3.5 sm:p-5">
+              <div className="flex items-center justify-between text-xs mb-1.5 sm:mb-2" style={{ color: 'var(--color-text-soft)' }}>
                 <span>Avg Pace / Set</span>
                 <Clock className="w-4 h-4" style={{ color: 'var(--color-warn)' }} />
               </div>
-              <div className="font-display text-3xl font-bold" style={{ color: 'var(--color-ink)' }}>
+              <div className="font-display text-2xl sm:text-3xl font-bold" style={{ color: 'var(--color-ink)' }}>
                 {formatDuration(analytics.avgSecs)}
               </div>
               <div className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-soft)' }}>
@@ -244,7 +244,7 @@ export default function ReportsPage() {
               </h2>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto no-scrollbar touch-scroll">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b text-xs uppercase tracking-wider" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-soft)' }}>

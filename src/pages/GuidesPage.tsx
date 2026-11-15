@@ -65,7 +65,7 @@ export default function GuidesPage() {
 
           {/* Editorial Reader */}
           {selectedGuide && Array.isArray(selectedGuide.content_blocks) && (
-            <article className="lg:col-span-8 rc-card-elevated p-6 sm:p-10 space-y-7">
+            <article className="lg:col-span-8 rc-card-elevated p-5 sm:p-10 space-y-7">
               <div className="pb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-primary)' }}>
                   <BookOpen className="w-3.5 h-3.5" />

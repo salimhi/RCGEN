@@ -290,9 +290,9 @@ export default function HomePage() {
       <ProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
 
       {/* Editorial Hero */}
-      <header className="text-center max-w-3xl mx-auto mb-9">
+      <header className="text-center max-w-3xl mx-auto mb-8 sm:mb-9">
         <span
-          className="inline-block text-xs font-bold uppercase tracking-[0.14em] px-3 py-1 rounded-full mb-4"
+          className="inline-block text-xs font-bold uppercase tracking-[0.14em] px-3 py-1 rounded-full mb-3 sm:mb-4"
           style={{
             backgroundColor: 'var(--color-primary-soft)',
             color: 'var(--color-primary)'
@@ -301,7 +301,7 @@ export default function HomePage() {
           Reading Comprehension
         </span>
         <h1
-          className="font-display text-4xl sm:text-5xl md:text-[3.35rem] font-semibold tracking-tight leading-[1.1] mb-4"
+          className="font-display text-3xl sm:text-5xl md:text-[3.35rem] font-semibold tracking-tight leading-[1.12] mb-3.5 sm:mb-4 px-1"
           style={{ color: 'var(--color-ink)' }}
         >
           Turn any article into an{' '}
@@ -310,7 +310,7 @@ export default function HomePage() {
           </em>{' '}
           RC test.
         </h1>
-        <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-sm sm:text-lg leading-relaxed px-2 sm:px-0" style={{ color: 'var(--color-text-muted)' }}>
           Paste text or choose from curated articles. 100% local-first and private in your browser. Instant scoring and per-option distractor explanations tuned for{' '}
           <strong style={{ color: 'var(--color-ink)' }}>CAT VARC</strong> and{' '}
           <strong style={{ color: 'var(--color-ink)' }}>GMAT Focus</strong>.
@@ -318,11 +318,11 @@ export default function HomePage() {
       </header>
 
       {/* Main Generator Studio Card */}
-      <section className="rc-card-elevated p-5 sm:p-7 mb-12">
+      <section className="rc-card-elevated p-4 sm:p-7 mb-10 sm:mb-12">
         {/* Source Mode Switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-5 mb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div
-            className="inline-flex p-1 rounded-xl border"
+            className="w-full sm:w-auto grid grid-cols-2 sm:flex p-1 rounded-xl border"
             style={{
               backgroundColor: 'var(--color-bg)',
               borderColor: 'var(--color-border)'
@@ -334,14 +334,14 @@ export default function HomePage() {
                 setInputMode('paste');
                 setErrorMsg(null);
               }}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer"
+              className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer"
               style={{
                 backgroundColor: inputMode === 'paste' ? 'var(--color-surface)' : 'transparent',
                 color: inputMode === 'paste' ? 'var(--color-ink)' : 'var(--color-text-muted)',
                 boxShadow: inputMode === 'paste' ? 'var(--shadow-soft)' : 'none'
               }}
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4 h-4 shrink-0" />
               <span>Paste Article</span>
             </button>
             <button
@@ -350,25 +350,25 @@ export default function HomePage() {
                 setInputMode('library');
                 setErrorMsg(null);
               }}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer"
+              className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer truncate"
               style={{
                 backgroundColor: inputMode === 'library' ? 'var(--color-surface)' : 'transparent',
                 color: inputMode === 'library' ? 'var(--color-ink)' : 'var(--color-text-muted)',
                 boxShadow: inputMode === 'library' ? 'var(--shadow-soft)' : 'none'
               }}
             >
-              <BookOpen className="w-4 h-4" />
-              <span>Curated Library ({libraryTests.length})</span>
+              <BookOpen className="w-4 h-4 shrink-0" />
+              <span className="truncate">Curated Library ({libraryTests.length})</span>
             </button>
           </div>
 
           {/* Exam Pattern Quick Toggle */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium" style={{ color: 'var(--color-text-soft)' }}>
+          <div className="flex flex-col xs:flex-row xs:items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs font-medium shrink-0" style={{ color: 'var(--color-text-soft)' }}>
               Exam Pattern:
             </span>
             <div
-              className="inline-flex p-1 rounded-xl border"
+              className="w-full sm:w-auto grid grid-cols-2 sm:flex p-1 rounded-xl border"
               style={{
                 backgroundColor: 'var(--color-bg)',
                 borderColor: 'var(--color-border)'
@@ -377,7 +377,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setExamType('CAT')}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center"
                 style={{
                   backgroundColor: examType === 'CAT' ? 'var(--color-primary)' : 'transparent',
                   color: examType === 'CAT' ? '#fffcf6' : 'var(--color-text-muted)'
@@ -388,13 +388,13 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setExamType('GMAT')}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center"
                 style={{
                   backgroundColor: examType === 'GMAT' ? 'var(--color-primary)' : 'transparent',
                   color: examType === 'GMAT' ? '#fffcf6' : 'var(--color-text-muted)'
                 }}
               >
-                GMAT Focus (5Q · A–E)
+                GMAT (5Q · A–E)
               </button>
             </div>
           </div>
@@ -440,7 +440,7 @@ export default function HomePage() {
                   value={pastedTitle}
                   onChange={(e) => setPastedTitle(e.target.value)}
                   placeholder="Leave blank to use the first line, or 'Untitled passage, 14 Nov'"
-                  className="w-full px-4 py-2.5 rounded-xl text-sm border outline-none transition-colors"
+                  className="w-full px-4 py-2.5 rounded-xl text-base sm:text-sm border outline-none transition-colors"
                   style={{
                     backgroundColor: 'var(--color-bg)',
                     borderColor: 'var(--color-border)',
@@ -454,7 +454,7 @@ export default function HomePage() {
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder="Paste any argumentative essay, philosophical reflection, science column, or economic commentary here (aim for 300–850 words for authentic CAT/GMAT passage pacing)..."
-                className="w-full p-4 rounded-2xl text-sm leading-relaxed border outline-none transition-colors resize-y font-body"
+                className="w-full p-3.5 sm:p-4 rounded-2xl text-base sm:text-sm leading-relaxed border outline-none transition-colors resize-y font-body"
                 style={{
                   backgroundColor: 'var(--color-bg)',
                   borderColor: 'var(--color-border-strong)',
@@ -693,7 +693,7 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={generating}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold rc-btn-primary cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base sm:text-sm font-semibold rc-btn-primary cursor-pointer shadow-md"
               >
                 {generating ? (
                   <>

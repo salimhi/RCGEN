@@ -286,7 +286,7 @@ async function runAllTests() {
             if (bodyStr.includes('ASSIGNED SLOTS:') || bodyStr.includes('Primary:')) {
               lastGeminiPrompt = bodyStr;
             }
-          } catch {}
+          } catch { }
         }
         return activeFetchHandler(url, ...rest);
       };
@@ -2297,20 +2297,22 @@ async function runAllTests() {
       if (opts?.body) lastGeminiPrompt = String(opts.body);
       if (callCount87 === 1) {
         const noDeepQuestions = makeMockAiQuestions();
-        const nonDeepSubs = ['para_function', 'attitude', 'example_role', 'according_to'];
-        let subIdx = 0;
+        const candidates = QUESTION_CATALOG.filter((c) => !DEEP_SUBTYPES.has(c.id));
         for (const q of noDeepQuestions) {
           if (DEEP_SUBTYPES.has(q.subtypeId)) {
-            while (subIdx < nonDeepSubs.length && noDeepQuestions.some((other: any) => other.subtypeId === nonDeepSubs[subIdx])) {
-              subIdx++;
-            }
-            const targetSub = nonDeepSubs[subIdx] || 'para_function';
-            subIdx++;
-            q.subtypeId = targetSub;
-            const item = SUBTYPE_BY_ID.get(targetSub);
-            if (item) {
-              q.type = item.archetype;
-              q.subtype = item.label;
+            for (const cand of candidates) {
+              const currentItems = noDeepQuestions
+                .map((other: any) => (other.id === q.id ? cand : SUBTYPE_BY_ID.get(other.subtypeId)))
+                .filter(Boolean);
+              if (currentItems.length === 4) {
+                const testVal = validateSubtypeList(currentItems as any, 'CAT', true, true);
+                if (testVal.valid) {
+                  q.subtypeId = cand.id;
+                  q.type = cand.archetype;
+                  q.subtype = cand.label;
+                  break;
+                }
+              }
             }
           }
         }

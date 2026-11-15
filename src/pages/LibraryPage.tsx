@@ -150,7 +150,7 @@ export default function LibraryPage() {
       {/* Filter Toolbar */}
       <div className="space-y-3 mb-7">
         <div className="flex flex-col sm:flex-row gap-3 justify-between">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 touch-scroll">
             {[
               { id: 'all', label: 'All Sets' },
               { id: 'library', label: 'Editorial Library' },
@@ -160,7 +160,7 @@ export default function LibraryPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setSourceTab(tab.id as 'all' | 'library' | 'custom')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer whitespace-nowrap shrink-0 ${
                   sourceTab === tab.id ? 'rc-chip-active' : 'rc-chip'
                 }`}
               >
@@ -168,14 +168,14 @@ export default function LibraryPage() {
               </button>
             ))}
 
-            <div className="h-4 w-px mx-1" style={{ backgroundColor: 'var(--color-border)' }} />
+            <div className="h-4 w-px mx-1 shrink-0" style={{ backgroundColor: 'var(--color-border)' }} />
 
             {(['All', 'CAT', 'GMAT'] as const).map((ex) => (
               <button
                 key={ex}
                 type="button"
                 onClick={() => setExamFilter(ex)}
-                className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer ${
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold cursor-pointer shrink-0 ${
                   examFilter === ex ? 'rc-chip-active' : 'rc-chip'
                 }`}
               >
@@ -191,7 +191,7 @@ export default function LibraryPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search passage or topic…"
-              className="w-full pl-9 pr-3 py-2 rounded-xl text-xs border outline-none"
+              className="w-full pl-9 pr-3 py-2 rounded-xl text-base sm:text-xs border outline-none"
               style={{
                 backgroundColor: 'var(--color-surface)',
                 borderColor: 'var(--color-border)',
@@ -202,13 +202,13 @@ export default function LibraryPage() {
         </div>
 
         {/* Topic Chips */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5 touch-scroll">
           {TOPICS.map((topic) => (
             <button
               key={topic}
               type="button"
               onClick={() => setTopicFilter(topic)}
-              className={`px-3 py-1.5 rounded-full text-xs cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full text-xs cursor-pointer whitespace-nowrap shrink-0 ${
                 topicFilter === topic ? 'rc-chip-active' : 'rc-chip'
               }`}
             >

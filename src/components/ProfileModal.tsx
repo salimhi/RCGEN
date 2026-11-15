@@ -248,12 +248,12 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-y-auto touch-scroll"
       onClick={onClose}
       style={{ minHeight: '100vh', width: '100vw' }}
     >
       <div
-        className="w-full max-w-xl rounded-2xl border p-6 sm:p-7 shadow-2xl space-y-6 my-auto max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-xl rounded-2xl border p-4 sm:p-7 shadow-2xl space-y-5 sm:space-y-6 my-auto max-h-[92vh] overflow-y-auto touch-scroll"
         style={{
           backgroundColor: 'var(--color-surface)',
           borderColor: 'var(--color-border-strong)',

@@ -205,6 +205,31 @@ html, body {
   border-radius: 999px;
 }
 
+/* Hide scrollbars for clean horizontal tab rows on mobile */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth mobile touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile responsive typography for passage prose */
+@media (max-width: 640px) {
+  .passage-prose {
+    font-size: calc(var(--passage-font-size, 19.5px) * 0.92);
+    line-height: 1.65;
+  }
+  .passage-prose p {
+    margin-bottom: 18px;
+  }
+}
+
 /* Question Generation Animations */
 @keyframes rc-shimmer {
   0% {

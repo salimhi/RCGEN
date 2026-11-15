@@ -79,7 +79,7 @@ export default function PyqPage() {
       </div>
 
       {/* Year Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 mb-8">
+      <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar pb-1.5 touch-scroll">
         {availableYears.map((yr) => (
           <button
             key={yr}
@@ -88,7 +88,7 @@ export default function PyqPage() {
               setSelectedYear(yr);
               setSearchParams({ year: String(yr) });
             }}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition-all ${selectedYear === yr ? 'rc-btn-primary' : 'rc-btn-secondary'
+            className={`px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer transition-all whitespace-nowrap shrink-0 ${selectedYear === yr ? 'rc-btn-primary' : 'rc-btn-secondary'
               }`}
           >
             CAT {yr}
@@ -178,7 +178,7 @@ export default function PyqPage() {
                         <button
                           type="button"
                           onClick={() => handleLaunchPyq(p)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold rc-btn-primary shrink-0 self-start sm:self-auto cursor-pointer"
+                          className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 rounded-xl text-xs font-semibold rc-btn-primary shrink-0 cursor-pointer shadow-xs"
                         >
                           <span>Practise in Player</span>
                           <ArrowRight className="w-3.5 h-3.5" />

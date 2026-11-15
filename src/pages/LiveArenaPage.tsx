@@ -118,7 +118,7 @@ export default function LiveArenaPage() {
 
             <Link
               to={`/test/${activeTest.id}`}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold rc-btn-primary"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold rc-btn-primary shadow-xs"
             >
               <span>{bestAttempt ? 'Retake Today’s Pick' : 'Attempt Today’s Pick'}</span>
               <ArrowRight className="w-4 h-4" />

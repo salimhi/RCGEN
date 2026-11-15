@@ -125,7 +125,7 @@ export default function ToolsPage() {
       </div>
 
       {/* Tool Switcher */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      <div className="grid grid-cols-2 sm:flex gap-2 mb-8">
         <button
           type="button"
           onClick={() => setSearchParams({ tab: 'calculator' })}
