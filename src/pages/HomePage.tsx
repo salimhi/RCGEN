@@ -13,7 +13,6 @@ import {
   Sliders,
   AlertCircle,
   Trophy,
-  Star,
   Cpu,
   Key
 } from 'lucide-react';
@@ -966,64 +965,6 @@ export default function HomePage() {
           </div>
         </section>
       )}
-
-      {/* Aspirant Testimonials */}
-      <section>
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="font-display text-2xl font-semibold" style={{ color: 'var(--color-ink)' }}>
-              Used daily by CAT 99%ilers &amp; GMAT 705+ scorers
-            </h2>
-            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-              Active reading meets ruthless option elimination.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            {
-              quote:
-                'Turning my daily Aeon essay into a 4-question CAT set broke my habit of passive reading. The per-option distractor explanations read just like real VARC analysis.',
-              who: 'Rohan Deshmukh',
-              tag: 'CAT 99.64 %ile · VARC 99.8'
-            },
-            {
-              quote:
-                'GMAT Focus 5-option inference traps always tripped me on dense philosophy passages. Eliminating options with strike-through in PracticeRC fixed my pacing.',
-              who: 'Ananya Krishnan',
-              tag: 'GMAT Focus 715 (V88)'
-            },
-            {
-              quote:
-                'Having all 60 CAT 2021–2025 PYQ passage slots plus the VARC percentile calculator in one clean dark-mode workspace saved hours every week.',
-              who: 'Siddharth Verma',
-              tag: 'IIM Bangalore Admit'
-            }
-          ].map((rev) => (
-            <div key={rev.who} className="rc-card p-5 flex flex-col justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-0.5 mb-3" style={{ color: 'var(--color-gold)' }}>
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                  ))}
-                </div>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text)' }}>
-                  “{rev.quote}”
-                </p>
-              </div>
-              <div className="pt-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
-                <p className="text-sm font-semibold" style={{ color: 'var(--color-ink)' }}>
-                  {rev.who}
-                </p>
-                <p className="text-xs" style={{ color: 'var(--color-primary)' }}>
-                  {rev.tag}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
