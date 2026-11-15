@@ -2292,8 +2292,9 @@ async function runAllTests() {
     // 8.7: deepSupported: false in passage analysis waives deep requirement
     console.log('  8.7: deepSupported: false in passage analysis waives deep requirement...');
     let callCount87 = 0;
-    globalThis.fetch = async () => {
+    globalThis.fetch = async (_url: any, opts?: any) => {
       callCount87++;
+      if (opts?.body) lastGeminiPrompt = String(opts.body);
       if (callCount87 === 1) {
         const noDeepQuestions = makeMockAiQuestions();
         const nonDeepSubs = ['para_function', 'attitude', 'example_role', 'according_to'];

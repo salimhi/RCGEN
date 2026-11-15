@@ -5,14 +5,149 @@
     "slot": 1,
     "passage_num": 1,
     "title": "CAT 2025 Slot 1 Passage 1",
-    "topic": "Uncategorized",
+    "topic": "Complex Systems & Heavy-Tailed Dynamics",
     "category": "pyq",
     "source_label": "CAT 2025 Slot 1",
     "exam_type": "CAT",
     "difficulty": "Challenging",
-    "target_seconds": 480,
-    "passage_paragraphs": [],
-    "questions": []
+    "target_seconds": 540,
+    "passage_paragraphs": [
+      "Understanding the key properties of complex systems can help us clarify and deal with many new and existing global challenges, from pandemics to poverty . . . A recent study in Nature Physics found transitions to orderly states such as schooling in fish (all fish swimming in the same direction), can be caused, paradoxically, by randomness, or 'noise' feeding back on itself. That is, a misalignment among the fish causes further misalignment, eventually inducing a transition to schooling. Most of us wouldn't guess that noise can produce predictable behaviour. The result invites us to consider how technology such as contact-tracing apps, although informing us locally, might negatively impact our collective movement. If each of us changes our behaviour to avoid the infected, we might generate a collective pattern we had aimed to avoid: higher levels of interaction between the infected and susceptible, or high levels of interaction among the asymptomatic.",
+      "Complex systems also suffer from a special vulnerability to events that don't follow a normal distribution or 'bell curve'. When events are distributed normally, most outcomes are familiar and don't seem particularly striking. Height is a good example: it's pretty unusual for a man to be over 7 feet tall; most adults are between 5 and 6 feet, and there is no known person over 9 feet tall. But in collective settings where contagion shapes behaviour – a run on the banks, a scramble to buy toilet paper – the probability distributions for possible events are often heavy-tailed. There is a much higher probability of extreme events, such as a stock market crash or a massive surge in infections. These events are still unlikely, but they occur more frequently and are larger than would be expected under normal distributions.",
+      "What's more, once a rare but hugely significant 'tail' event takes place, this raises the probability of further tail events. We might call them second-order tail events; they include stock market gyrations after a big fall and earthquake aftershocks. The initial probability of second-order tail events is so tiny it's almost impossible to calculate – but once a first-order tail event occurs, the rules change, and the probability of a second-order tail event increases.",
+      "The dynamics of tail events are complicated by the fact that they result from cascades of other unlikely events. When COVID-19 first struck, the stock market suffered stunning losses followed by an equally stunning recovery. Some of these dynamics are potentially attributable to former sports bettors, with no sports to bet on, entering the market as speculators rather than investors. The arrival of these new players might have increased inefficiencies and allowed savvy long-term investors to gain an edge over bettors with different goals. . . .",
+      "One reason a first-order tail event can induce further tail events is that it changes the perceived costs of our actions and changes the rules that we play by. This game-change is an example of another key complex systems concept: nonstationarity. A second, canonical example of nonstationarity is adaptation, as illustrated by the arms race involved in the coevolution of hosts and parasites [in which] each has to 'run' faster, just to keep up with the novel solutions the other one presents as they battle it out in evolutionary time."
+    ],
+    "questions": [
+      {
+        "id": "cat-2025-slot-1-p1-q1",
+        "type": "Inference",
+        "subtype": "Negative / EXCEPT inference",
+        "stem": "All of the following inferences are supported by the passage EXCEPT that:",
+        "correctLetter": "A",
+        "options": [
+          {
+            "letter": "A",
+            "text": "The text attributes the COVID-19 pandemic rebound in financial markets solely to displaced sports bettors and treats their entry as the overriding cause of the rapid recovery across assets and time horizons.",
+            "explanation": "Correct — The passage states only that \"Some of these dynamics are potentially attributable to former sports bettors... entering the market as speculators.\" It never attributes the rebound solely to them or designates them as the overriding cause across all assets and horizons. Because this extreme claim is unsupported, it is the correct answer to the EXCEPT question."
+          },
+          {
+            "letter": "B",
+            "text": "Heavy-tailed events make extreme outcomes more frequent and larger than bell curve expectations. This complicates forecasting and risk management in collective settings shaped by contagion and copying behaviour.",
+            "flawTag": "opposite",
+            "explanation": "Wrong (Supported by passage) — Paragraph 2 explicitly states that in collective settings shaped by contagion, probability distributions are heavy-tailed, meaning extreme events occur more frequently and are larger than under normal bell curves."
+          },
+          {
+            "letter": "C",
+            "text": "Learning can change the rules that actors face. So, a rare shock can alter payoffs and raise the odds of subsequent large disturbances within the same system, which supports the idea of second-order tail events.",
+            "flawTag": "opposite",
+            "explanation": "Wrong (Supported by passage) — Paragraphs 3 and 5 explain that initial tail events change perceived costs and the rules actors play by (nonstationarity), raising the probability of subsequent large disturbances (second-order tail events)."
+          },
+          {
+            "letter": "D",
+            "text": "Examples like runs on banks and toilet paper scrambles illustrate how contagion can amplify local choices into system-wide cascades that surprise participants and lead to patterns they did not intend to create.",
+            "flawTag": "opposite",
+            "explanation": "Wrong (Supported by passage) — Paragraphs 1 and 2 highlight bank runs, toilet paper scrambles, and contact-tracing avoidance as examples where individual contagion dynamics amplify into unintended system-wide cascades."
+          }
+        ]
+      },
+      {
+        "id": "cat-2025-slot-1-p1-q2",
+        "type": "Strengthen / Weaken",
+        "subtype": "Underlying assumption",
+        "stem": "The passage suggests that contact tracing apps could inadvertently raise risky interactions by altering local behaviour. Which one of the assumptions below is most necessary for that suggestion to hold?",
+        "correctLetter": "A",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Individuals base movement choices partly on observed infections and on the behaviour of others. So, local responses interact, which turns many small adjustments into large scale patterns that can frustrate the intended aim of risk reduction.",
+            "explanation": "Correct — The argument that contact-tracing apps inadvertently increase risky interactions hinges on behavioral feedback: individuals must observe signals (infections or others' movement) and alter their own behavior in response, turning localized avoidance into counter-productive aggregate patterns. If people did not adapt their movements based on information, the unintended cascade could not occur."
+          },
+          {
+            "letter": "B",
+            "text": "Urban networks have uniform traffic conditions at all hours, which allows perfectly predictable routing independent of personal choices, social signals, or crowd reactions and, therefore, makes interdependence negligible in city movement decisions.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — If urban traffic were perfectly predictable and personal choices/crowd signals had zero effect, behavioral feedback loops would be impossible, directly contradicting the premise of collective contagion."
+          },
+          {
+            "letter": "C",
+            "text": "App alerts always include precise location to within one metre and deliver real time updates for all users, which ensures that the data feed is perfectly accurate regardless of privacy settings, power limits, or network conditions.",
+            "flawTag": "extreme",
+            "explanation": "Wrong — Extreme technical precision (to within one metre without fail) is not an assumption required for the mechanism to work; behavioural shifts occur even with approximate or imperfect information."
+          },
+          {
+            "letter": "D",
+            "text": "Most users uninstall apps within a week, which leaves only highly exposed individuals participating. This neutralises any systematic bias in routing decisions and prevents any predictable change in aggregate contact patterns.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — If mass uninstallation neutralized systematic routing bias and prevented aggregate contact changes, it would actively prevent the very negative outcome the passage warns against, undermining the premise."
+          }
+        ]
+      },
+      {
+        "id": "cat-2025-slot-1-p1-q3",
+        "type": "Main Idea",
+        "subtype": "Primary purpose",
+        "stem": "Which one of the options below best summarises the passage?",
+        "correctLetter": "B",
+        "options": [
+          {
+            "letter": "A",
+            "text": "The passage explains how speculative entrants always produce inefficiency after health shocks. Therefore, long-term investors invariably profit when new participants push prices away from fundamentals under pandemic conditions and comparable crises.",
+            "flawTag": "scope",
+            "explanation": "Wrong — Too narrow and exaggerated. The sports bettor dynamic is a single illustrative hypothesis in Paragraph 4, and the passage does not claim long-term investors \"invariably profit\" or that all entrants produce inefficiency."
+          },
+          {
+            "letter": "B",
+            "text": "The passage explains how noise can create order, then shows why complex systems with contagion are vulnerable to heavy-tailed cascades. It also explains why early shocks change rules through nonstationarity with a market illustration during the COVID-19 disruption.",
+            "explanation": "Correct — Accurately captures the full thematic structure: how noise generates order (fish schooling / app dynamics), why complex contagion systems suffer from heavy-tailed cascades, and how shocks alter the rules of the game via nonstationarity (exemplified by the COVID-19 market cycle)."
+          },
+          {
+            "letter": "C",
+            "text": "The passage explains how social outcomes generally follow normal distributions. So, extreme events are negligible, and policy should stabilise averages rather than learn from large shocks in fast-changing collective settings.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — Directly contradicts Paragraph 2, which explicitly points out that collective social systems do not follow normal distributions, but rather heavy-tailed curves where extreme events are frequent and significant."
+          },
+          {
+            "letter": "D",
+            "text": "The passage explains how nonstationarity works in evolutionary biology and rejects applications in markets or public health because adaptation is exclusive to parasite-host systems and cannot arise in technology-mediated social dynamics.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — Falsely claims the passage rejects applications in markets or public health. The author uses host-parasite evolution merely as an analogy to explain nonstationarity in social, medical, and market dynamics."
+          }
+        ]
+      },
+      {
+        "id": "cat-2025-slot-1-p1-q4",
+        "type": "Strengthen / Weaken",
+        "subtype": "Strengthen argument",
+        "stem": "Which one of the following observations would most strengthen the passage's claim that a first-order tail event raises the probability of further tail events in complex systems?",
+        "correctLetter": "B",
+        "options": [
+          {
+            "letter": "A",
+            "text": "In epidemic networks, initial super-spreading episodes are isolated spikes after which outbreak sizes match the baseline distribution from independent contact models across comparable cities with no rise in the frequency or size of later extreme clusters.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — An isolated spike with no rise in subsequent extreme clusters describes event independence (a memoryless baseline distribution), which weakens rather than strengthens the claim of elevated second-order tail probabilities."
+          },
+          {
+            "letter": "B",
+            "text": "After a major equity crash, researchers find dense clusters of large daily moves for several weeks, with extreme days occurring far more often than in normal circumstances for assets with customarily low volatility profiles.",
+            "explanation": "Correct — Directly corroborates the claim: finding dense clusters of extreme moves occurring far more frequently than normal baseline distributions after a major crash provides empirical evidence that first-order shocks increase subsequent tail probabilities."
+          },
+          {
+            "letter": "C",
+            "text": "River discharge records show water levels fit a normal distribution with thin tails that match laboratory data, regardless of storms or floods.",
+            "flawTag": "irrelevant",
+            "explanation": "Wrong — Showing that water levels follow thin-tailed normal distributions demonstrates a non-complex, memoryless system, providing no support for tail cascades in complex systems."
+          },
+          {
+            "letter": "D",
+            "text": "Following large earthquakes, regional seismic activity returns to baseline within hours with no aftershock sequence once data are adjusted for reporting effects, which suggests independence across events rather than any elevation in subsequent tail probabilities.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — If earthquakes returned to baseline within hours with no aftershocks, it would demonstrate event independence, directly contradicting the author's earthquake aftershock example in Paragraph 3."
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "cat-2025-slot-1-p2",
@@ -20,14 +155,148 @@
     "slot": 1,
     "passage_num": 2,
     "title": "CAT 2025 Slot 1 Passage 2",
-    "topic": "Uncategorized",
+    "topic": "Electronic Music Aesthetics & Composition",
     "category": "pyq",
     "source_label": "CAT 2025 Slot 1",
     "exam_type": "CAT",
     "difficulty": "Challenging",
     "target_seconds": 480,
-    "passage_paragraphs": [],
-    "questions": []
+    "passage_paragraphs": [
+      "Often the well intentioned music lover or the traditionally-minded professional composer asks two basic questions when faced with the electronic music phenomena: (1) . . . is this type of artistic creation music at all? and, (2) given that the product is accepted as music of a new type or order, is not such music \"inhuman\"? . . . As Lejaren Hiller points out in his book Experimental Music (co-author Leonard M. Isaacson), two questions which often arise when music is discussed are: (a) the substance of musical communication and its symbolic and semantic significance, if any, and (b) the particular processes, both mental and technical, which are involved in creating and responding to musical composition. The ever-present popular concept of music as a direct, open, emotional expression and as a subjective form of communication from the composer, is, of course still that of the nineteenth century, when composers themselves spoke of music in those terms . . . But since the third decade of our century many composers have preferred more objective definitions of music, epitomized in Stravinsky's description of it as \"a form of speculation in terms of sound and time\". An acceptance of this more characteristic twentieth-century view of the art of musical composition will of course immediately bring the layman closer to an understanding of, and sympathetic response to, electronic music, even if the forms, sounds and approaches it uses will still be of a foreign nature to him.",
+      "A communication problem however will still remain. The principal barrier that electronic music presents at large, in relation to the communication process, is that composers in this medium are employing a new language of forms . . . where terms like 'densities', 'indefinite pitch relations', 'dynamic serialization', 'permutation', etc., are substitutes (or remote equivalents) for the traditional concepts of harmony, melody, rhythm, etc. . . . When the new structural procedures of electronic music are at last fully understood by the listener the barriers between him and the work he faces will be removed. . . .",
+      "The medium of electronic music has of course tempted many kinds of composers to try their hand at it . . . But the serious-minded composer approaches the world of electronic music with a more sophisticated and profound concept of creation. Although he knows that he can reproduce and employ melodic, rhythmic patterns and timbres of a traditional nature, he feels that it is in the exploration of sui generis languages and forms that the aesthetic magic of the new medium lies. And, conscientiously, he plunges into this search.",
+      "The second objection usually levelled against electronic music is much more innocent in nature. When people speak—sometimes very vehemently—of the 'inhuman' quality of this music they seem to forget that the composer is the one who fires the machines, collects the sounds, manipulates them, pushes the buttons, programs the computer, filters the sounds, establishes pitches and scales, splices tape, thinks of forms, and rounds up the over-all structure of the piece, as well as every detail of it."
+    ],
+    "questions": [
+      {
+        "id": "cat-2025-slot-1-p2-q1",
+        "type": "Detail & Logic",
+        "subtype": "Relational function / connecting ideas",
+        "stem": "What relation does the \"communication problem\" mentioned in the passage have to the questions that the author recounts at the beginning of the passage?",
+        "correctLetter": "B",
+        "options": [
+          {
+            "letter": "A",
+            "text": "The communication problem is what allows us to see electronic music as music because music must be difficult to understand.",
+            "flawTag": "distortion",
+            "explanation": "Wrong — The author never claims that music 'must be difficult to understand.' The communication problem is described as a temporary barrier arising from unfamiliar structural procedures, not a qualifying prerequisite for music."
+          },
+          {
+            "letter": "B",
+            "text": "Unfamiliar forms and terms might get in the way of our seeing electronic music as music, but this can be overcome.",
+            "explanation": "Correct — The passage explains that the first question ('is this type of artistic creation music at all?') is hindered by a communication barrier where composers use unfamiliar structural procedures ('densities', 'permutation'). However, the author explicitly notes that once these procedures are understood by the listener, the barriers will be removed."
+          },
+          {
+            "letter": "C",
+            "text": "None; they are unrelated to one another and form parts of different discussions.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — The communication problem directly addresses why listeners struggle to accept electronic music under the first question ('is this type of artistic creation music at all?'). They are closely linked, not unrelated."
+          },
+          {
+            "letter": "D",
+            "text": "Its unfamiliar \"language of forms\" and novel terms mean that we cannot see electronic music as music since it does not employ traditional musical concepts.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — Contradicts the passage's concluding sentence in that section, which states that when listeners understand the new structural procedures, the barriers between listener and work will be removed, allowing it to be understood as music."
+          }
+        ]
+      },
+      {
+        "id": "cat-2025-slot-1-p2-q2",
+        "type": "Vocabulary in Context",
+        "subtype": "Meaning in context",
+        "stem": "From the context in which it is placed, the phrase \"sui generis\" suggests which one of the following?",
+        "correctLetter": "A",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Particular",
+            "explanation": "Correct — In this context, 'sui generis' refers to languages and forms that are unique, self-originating, and of their own particular kind, distinct from traditional musical conventions."
+          },
+          {
+            "letter": "B",
+            "text": "Indescribable",
+            "flawTag": "distortion",
+            "explanation": "Wrong — 'Sui generis' means self-generated or unique of its own kind, not beyond description or comprehension. The composer actively analyzes, serializes, and manipulates these forms."
+          },
+          {
+            "letter": "C",
+            "text": "Generic",
+            "flawTag": "opposite",
+            "explanation": "Wrong — 'Generic' is an exact antonym of 'sui generis' (which means unique, distinctive, or singular in kind)."
+          },
+          {
+            "letter": "D",
+            "text": "Unaesthetic",
+            "flawTag": "opposite",
+            "explanation": "Wrong — The text directly links sui generis forms to where the 'aesthetic magic of the new medium lies,' contradicting any notion of being unaesthetic."
+          }
+        ]
+      },
+      {
+        "id": "cat-2025-slot-1-p2-q3",
+        "type": "Main Idea",
+        "subtype": "Primary purpose",
+        "stem": "The goal of the author over the course of this passage is to:",
+        "correctLetter": "A",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Defend electronic music from certain common charges.",
+            "explanation": "Correct — The author identifies the two core objections leveled against electronic music (whether it is music at all, and whether it is 'inhuman') and methodically refutes both by clarifying its objective twentieth-century aesthetic foundations and emphasizing the active human craftsmanship behind all electronic composition."
+          },
+          {
+            "letter": "B",
+            "text": "Differentiate between electronic music and other forms of music.",
+            "flawTag": "scope",
+            "explanation": "Wrong — Too broad and neutral. While differences are mentioned, the author's primary rhetorical purpose is argumentative and defensive: countering skepticism and defending electronic music against specific objections."
+          },
+          {
+            "letter": "C",
+            "text": "Defend the 'serious-minded composer' from Lejaren Hiller and Stravinsky.",
+            "flawTag": "opposite",
+            "explanation": "Wrong — The author cites Hiller and Stravinsky as authoritative references that support their view, not as critics opposing the serious-minded composer."
+          },
+          {
+            "letter": "D",
+            "text": "Differentiate the modern composer from the nineteenth century composer.",
+            "flawTag": "scope",
+            "explanation": "Wrong — The historical shift between nineteenth-century emotionalism and twentieth-century objectivity is a supporting premise used to reframe the debate, not the primary goal of the whole passage."
+          }
+        ]
+      },
+      {
+        "id": "cat-2025-slot-1-p2-q4",
+        "type": "Detail & Logic",
+        "subtype": "Negative / EXCEPT detail",
+        "stem": "The mention of Stravinsky's description of music in the opening paragraph does all the following EXCEPT:",
+        "correctLetter": "A",
+        "options": [
+          {
+            "letter": "A",
+            "text": "Help us determine which sounds are musical and which are not.",
+            "explanation": "Correct — Stravinsky's definition of music as 'a form of speculation in terms of sound and time' is an open, objective characterization of musical thought. It does not provide a boundary or diagnostic test to classify individual sounds into 'musical' versus 'unmusical.' Because the passage never attributes this function to the quote, it is the correct answer to the EXCEPT question."
+          },
+          {
+            "letter": "B",
+            "text": "Complicate our notion of what is communicated through music.",
+            "flawTag": "opposite",
+            "explanation": "Wrong (Supported by passage) — Stravinsky's definition challenges the simplistic nineteenth-century view that music must be direct emotional communication, thus complicating what is communicated."
+          },
+          {
+            "letter": "C",
+            "text": "Allow us to classify electronic music as music.",
+            "flawTag": "opposite",
+            "explanation": "Wrong (Supported by passage) — The text explicitly states that accepting this twentieth-century definition will bring the layman closer to understanding and sympathetically accepting electronic creation as music."
+          },
+          {
+            "letter": "D",
+            "text": "Respond to and expand upon earlier understandings of music.",
+            "flawTag": "opposite",
+            "explanation": "Wrong (Supported by passage) — Stravinsky's description responds to and moves beyond the nineteenth-century view of music as subjective emotional expression, expanding the definition to sound and time speculation."
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "cat-2025-slot-1-p3",
