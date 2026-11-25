@@ -1,6 +1,6 @@
-# PracticeRC — 100% Static & Local-First Reading Comprehension Platform
+# RCgen — 100% Static & Local-First Reading Comprehension Platform
 
-PracticeRC is a 100% static, client-side web application designed for **CAT VARC** and **GMAT Focus** aspirants. It turns any argumentative essay or article into an exam-grade Reading Comprehension test with structured questions, plausible distractors, and per-option explanations.
+RCgen is a 100% static, client-side web application designed for **CAT VARC** and **GMAT Focus** aspirants. It turns any argumentative essay or article into an exam-grade Reading Comprehension test with structured questions, plausible distractors, and per-option explanations.
 
 The app is architected with **zero backend, zero database, and zero server dependencies**, making it ready for instant deployment to **GitHub Pages**.
 
@@ -120,7 +120,7 @@ The validator automatically verifies:
 
 ## 🔍 Auditing Questions with a Second AI
 
-PracticeRC includes an automated second-opinion audit tool (`scripts/audit-questions.mjs`) that submits reading comprehension passages and questions to a blind reviewer (Groq Llama 3.3 70B, and optionally Gemini) without the answer key, solving each question to check for ambiguity, flawed distractors, or incorrect answer keys.
+RCgen includes an automated second-opinion audit tool (`scripts/audit-questions.mjs`) that submits reading comprehension passages and questions to a blind reviewer (Groq Llama 3.3 70B, and optionally Gemini) without the answer key, solving each question to check for ambiguity, flawed distractors, or incorrect answer keys.
 
 The audit script reads API keys strictly from your environment variables and never logs, prints, or saves them to any file.
 

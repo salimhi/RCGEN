@@ -91,12 +91,6 @@ export default function LibraryPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-16">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <span
-            className="inline-block text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-2.5"
-            style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
-          >
-            Curated &amp; Generated Sets
-          </span>
           <h1 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--color-ink)' }}>
             Article Library
           </h1>

@@ -123,7 +123,7 @@ export default function GeneratingOverlay({
                 Building Your {examType} Reading Comprehension Test
               </h2>
               <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                Calibrating {difficulty} difficulty &amp; rigorous option psychometrics · <span className="text-amber-600 dark:text-amber-400 font-medium">This can take up to a minute.</span>
+                Calibrating {difficulty} difficulty &amp; rigorous option psychometrics · <span className="font-medium" style={{ color: 'var(--color-accent)' }}>This can take up to a minute.</span>
               </p>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function GeneratingOverlay({
                         {isDone ? (
                           <div
                             className="w-5 h-5 rounded-full flex items-center justify-center"
-                            style={{ backgroundColor: 'var(--color-correct)', color: '#fff' }}
+                            style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-bg)' }}
                           >
                             <Check className="w-3 h-3 stroke-[3]" />
                           </div>
@@ -257,7 +257,7 @@ export default function GeneratingOverlay({
                             {s.label}
                           </p>
                           {isCurrent && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}>
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-bg)' }}>
                               Active
                             </span>
                           )}
@@ -272,7 +272,7 @@ export default function GeneratingOverlay({
               </div>
 
               <div className="p-3 rounded-xl border text-[11px] leading-relaxed flex items-center gap-2" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-2)', color: 'var(--color-text-soft)' }}>
-                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: 'var(--color-accent)' }} />
                 <span>
                   Every question undergoes independent blind review to guarantee exactly one unambiguous correct key.
                 </span>

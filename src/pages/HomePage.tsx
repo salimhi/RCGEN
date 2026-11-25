@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import GeneratingOverlay, { type GenerationStage } from '../components/GeneratingOverlay';
 import ProfileModal from '../components/ProfileModal';
 import {
   Sparkles,
   FileText,
-  Globe,
   BookOpen,
-  ArrowRight,
-  Clock,
-  CheckCircle2,
   Sliders,
   AlertCircle,
   Trophy,
   Cpu,
-  Key
+  Key,
+  Check,
+  RotateCcw
 } from 'lucide-react';
 import type { RCTest, ExamType, DifficultyLevel } from '../types';
 import { useProfile } from '../contexts/ProfileContext';
@@ -25,12 +25,12 @@ import { normalizeParagraphs, detectTopic } from '../lib/ruleGenerator';
 
 const SAMPLE_PRESETS = [
   {
-    label: 'Epistemology & Models (Aeon style)',
+    label: 'Epistemology & Models',
     title: 'The Map That Mistook Itself for Territory',
     text: `Every mature science relies on idealization: frictionless planes in mechanics, rational utility-maximizers in economics, isolated gene-loci in population genetics. Without deliberate simplification, inquiry would drown in raw particularity before formulating a single testable law. To that extent, abstraction is not a departure from reality so much as the precondition for saying anything intelligible about it.\n\nTrouble begins, however, when the institutional prestige of a model outlives sensitivity to what its simplifying assumptions bracketed away. Practitioners socialized inside a successful paradigm routinely treat unmodeled variables not as temporarily deferred complications, but as ontological noise. Were the excluded factors genuinely negligible in every setting, no harm would follow. Because real-world interventions alter the very boundary conditions that laboratory idealizations hold constant, policies guided by stripped-down models frequently fail most dramatically where their architects feel most certain.\n\nConsider how mid-century urban planners and forestry agencies approached complex ecosystems. Armed with legible single-metric yield tables, administrators eliminated messy species diversity in favour of uniform rows that maximized short-term harvest calculations. For a decade or two, the metrics vindicated them. Only later did soil exhaustion and pest cascades reveal that the discarded "clutter" had been quietly performing the ecological work that kept the prized output viable.\n\nDefenders of formal modeling reply that blaming abstraction itself confuses bad models with the method of modeling: the remedy for an incomplete equation is simply a richer equation. That rejoinder carries real force, yet it underestimates a subtler hazard. Whenever institutions tie budgets and accountability to quantifiable outputs, whatever resists clean parameterization continues to lose bureaucratic standing regardless of how sophisticated equations become.\n\nIntellectual humility in modeling therefore demands more than technical refinement. It requires preserving rival ways of noticing—field observation, historical narrative, local tacit knowledge—precisely so practitioners can recognize when an otherwise elegant map has begun eroding the territory it claims to describe.`
   },
   {
-    label: 'Global Trade & Resilience (Economist style)',
+    label: 'Global Trade & Resilience',
     title: 'Why Just-in-Time Efficiency Priced Risk Out of Sight',
     text: `For three decades, corporate strategists treated inventory buffers and redundant suppliers as confessions of managerial sloth. Lean supply chains promised a straightforward dividend: eliminate idle stock, concentrate production where unit costs were lowest, and recycle freed capital into shareholder returns or research. Judged by quarterly operating margins during years of geopolitical calm, the doctrine delivered handsomely.\n\nWhat the balance sheet recorded as pure efficiency gain, however, was in substantial measure an unbooked transfer of tail risk. Redundancy looks wasteful only when shocks are independent and short-lived. In tightly coupled networks where dozens of downstream assemblers rely on a single specialized fabrication node, local disruptions propagate nonlinearly rather than averaging out. Individual firms captured the certain daily savings of leanness while externalizing vulnerability across the wider economy.\n\nCritics sometimes conclude that globalization itself was a mistake and that domestic self-sufficiency offers a straightforward cure. Yet autarky confuses geographic proximity with structural resilience. Concentrating every stage of production inside one border merely exposes a nation to domestic weather, labour bottlenecks, or regulatory missteps without diversified external fallbacks.\n\nThe harder task for policymakers and boards alike is learning to price insurance before a crisis makes its value obvious. Markets excel at arbitraging visible unit-cost spreads; they are notoriously poor at rewarding executives who spend money today to soften a disruption that may arrive only once a decade.`
   }
@@ -55,6 +55,8 @@ const TOPIC_CATEGORIES = [
 export default function HomePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const heroContainerRef = useRef<HTMLDivElement>(null);
+
   const {
     geminiKey,
     hasGeminiKey,
@@ -75,7 +77,6 @@ export default function HomePage() {
   const [pastedText, setPastedText] = useState('');
   const [pastedTopic, setPastedTopic] = useState<string>('Philosophy');
   const [topicUserSelected, setTopicUserSelected] = useState<boolean>(false);
-  const [articleUrl, setArticleUrl] = useState('');
   const [examType, setExamType] = useState<ExamType>(
     searchParams.get('exam') === 'GMAT' ? 'GMAT' : 'CAT'
   );
@@ -92,10 +93,25 @@ export default function HomePage() {
   const [loadingTests, setLoadingTests] = useState(true);
   const [selectedTopic, setSelectedTopic] = useState('All');
 
-  // Inline quick-check state for embedded sample question preview on homepage
-  const [previewSelected, setPreviewSelected] = useState<string | null>(null);
+  // Hero sample question interactive state
+  const [heroAnswerPicked, setHeroAnswerPicked] = useState<string | null>(null);
 
-  // Automatically switch engine to gemini if key is added, or algorithm if no key
+  // Orchestrated Hero Page-Load Reveal with GSAP (only once on mount, respecting prefers-reduced-motion)
+  useGSAP(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    gsap.from('.gsap-hero-reveal', {
+      y: 18,
+      opacity: 0,
+      duration: 0.75,
+      stagger: 0.12,
+      ease: 'power2.out',
+      clearProps: 'all'
+    });
+  }, { scope: heroContainerRef });
+
   useEffect(() => {
     if (hasGeminiKey) {
       setEngine('gemini');
@@ -164,7 +180,6 @@ export default function HomePage() {
     const trimmed = rawTitle.trim();
     if (trimmed) return trimmed;
 
-    // Check first line of text
     const firstLine = text.trim().split('\n')[0].trim();
     const words = firstLine.split(/\s+/).filter(Boolean);
     if (words.length > 0 && words.length <= 15 && !/[.!?]$/.test(firstLine)) {
@@ -267,10 +282,37 @@ export default function HomePage() {
       ? libraryTests
       : libraryTests.filter((t) => t.topic === selectedTopic);
 
-  const sampleFirstQ = featuredSample?.questions?.[0];
+  // Decorative Sample Question data for Hero right pane
+  const heroSample = {
+    title: 'The Map That Mistook Itself for Territory',
+    topic: 'Philosophy & Epistemology',
+    excerpt:
+      'Every mature science relies on idealization: frictionless planes in mechanics, rational utility-maximizers in economics, isolated gene-loci in population genetics. Without deliberate simplification, inquiry would drown in raw particularity before formulating a single testable law. Trouble begins, however, when the institutional prestige of a model outlives sensitivity to what its simplifying assumptions bracketed away.',
+    stem: 'Based on the excerpt, which best captures why scientific idealization is both indispensable and dangerous?',
+    options: [
+      {
+        letter: 'A',
+        text: 'It enables initial lawmaking, yet risks mistaking provisional omissions for negligible reality.',
+        isCorrect: true,
+        explanation: 'The author notes idealization is the precondition for intelligible laws, but warns practitioners soon treat excluded variables as noise.'
+      },
+      {
+        letter: 'B',
+        text: 'It prevents empirical research until every real-world variable has been quantified.',
+        isCorrect: false,
+        explanation: 'Directly contradicts paragraph 1: without simplification, inquiry would drown immediately.'
+      },
+      {
+        letter: 'C',
+        text: 'It functions smoothly in economics but fails consistently when applied to physical mechanics.',
+        isCorrect: false,
+        explanation: 'Unsupported comparison: mechanics, economics, and genetics are cited as parallel examples of idealization.'
+      }
+    ]
+  };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-20">
       <GeneratingOverlay
         isGenerating={generating}
         stage={genStage}
@@ -282,44 +324,186 @@ export default function HomePage() {
         error={errorMsg && generating ? errorMsg : null}
         onRetry={() => {
           setErrorMsg(null);
-          handleGenerate({ preventDefault: () => {} } as React.FormEvent);
+          handleGenerate({ preventDefault: () => { } } as React.FormEvent);
         }}
       />
 
       <ProfileModal isOpen={profileModalOpen} onClose={() => setProfileModalOpen(false)} />
 
-      {/* Editorial Hero */}
-      <header className="text-center max-w-3xl mx-auto mb-8 sm:mb-9">
-        <span
-          className="inline-block text-xs font-bold uppercase tracking-[0.14em] px-3 py-1 rounded-full mb-3 sm:mb-4"
-          style={{
-            backgroundColor: 'var(--color-primary-soft)',
-            color: 'var(--color-primary)'
-          }}
-        >
-          Reading Comprehension
-        </span>
-        <h1
-          className="font-display text-3xl sm:text-5xl md:text-[3.35rem] font-semibold tracking-tight leading-[1.12] mb-3.5 sm:mb-4 px-1"
-          style={{ color: 'var(--color-ink)' }}
-        >
-          Turn any article into an{' '}
-          <em className="italic font-normal" style={{ color: 'var(--color-primary)' }}>
-            exam-grade
-          </em>{' '}
-          RC test.
-        </h1>
-        <p className="text-sm sm:text-lg leading-relaxed px-2 sm:px-0" style={{ color: 'var(--color-text-muted)' }}>
-          Paste text or choose from curated articles. 100% local-first and private in your browser. Instant scoring and per-option distractor explanations tuned for{' '}
-          <strong style={{ color: 'var(--color-ink)' }}>CAT VARC</strong> and{' '}
-          <strong style={{ color: 'var(--color-ink)' }}>GMAT Focus</strong>.
-        </p>
-      </header>
+      {/* =========================================================================
+          HERO: Asymmetric Editorial Split (7:5) with GSAP Page-Load Reveal
+          Left: Bold typography statement & intent
+          Right: Static decorative RC practice artifact (with new dedicated classes)
+         ========================================================================= */}
+      <section ref={heroContainerRef} className="mb-14 sm:mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* Left Column: Bold Headline & Editorial Statement */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="gsap-hero-reveal">
+              <h1
+                className="font-display text-2xl sm:text-4xl lg:text-[3.25rem] font-semibold tracking-tight leading-[1.14] text-left"
+                style={{ color: 'var(--color-ink)' }}
+              >
+                Turn any article into an exam-grade RC test.
+              </h1>
+            </div>
 
-      {/* Main Generator Studio Card */}
-      <section className="rc-card-elevated p-4 sm:p-7 mb-10 sm:mb-12">
+            <p
+              className="gsap-hero-reveal text-base sm:text-lg leading-relaxed text-left max-w-[62ch]"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Paste essays from Aeon, The Economist, or research journals. RCgen normalizes
+              passage density, crafts four-option psychometric distractors, and explains every option.
+              Runs entirely inside your browser with complete privacy.
+            </p>
+
+            <div className="gsap-hero-reveal flex flex-wrap items-center gap-4 pt-1">
+              <a
+                href="#generator-studio"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-sm font-semibold rc-btn-primary cursor-pointer transition-colors"
+              >
+                Create RC Test
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setInputMode('library');
+                  const el = document.getElementById('generator-studio');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="inline-flex items-center justify-center px-5 py-3 rounded-xl text-sm font-medium rc-btn-secondary cursor-pointer transition-colors"
+              >
+                Explore Curated Passages
+              </button>
+            </div>
+
+            <div
+              className="gsap-hero-reveal flex items-center gap-6 pt-3 text-xs"
+              style={{ color: 'var(--color-text-soft)' }}
+            >
+              <span>Tuned for CAT VARC (+3 / −1)</span>
+              <span>·</span>
+              <span>GMAT Focus Verbal (A–E)</span>
+              <span>·</span>
+              <span>Local-first &amp; Private</span>
+            </div>
+          </div>
+
+          {/* Right Column: Static Decorative RC Excerpt Artifact (NEW CLASSES ONLY) */}
+          <div className="lg:col-span-5 gsap-hero-reveal">
+            <div className="editorial-sample-box p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                <span className="text-xs font-semibold" style={{ color: 'var(--color-accent)' }}>
+                  Sample Reading Artifact
+                </span>
+                <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
+                  {heroSample.topic}
+                </span>
+              </div>
+
+              <div>
+                <h3 className="font-display font-semibold text-base mb-2" style={{ color: 'var(--color-ink)' }}>
+                  {heroSample.title}
+                </h3>
+                <p className="editorial-sample-excerpt text-sm sm:text-[15px] leading-relaxed line-clamp-5">
+                  {heroSample.excerpt}
+                </p>
+              </div>
+
+              {/* Sample Question Preview inside Artifact */}
+              <div className="editorial-sample-question p-4 space-y-3">
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span style={{ color: 'var(--color-text-soft)' }}>Diagnostic Question Stem</span>
+                  <span className="text-[11px] font-semibold" style={{ color: 'var(--color-accent)' }}>
+                    Inference &amp; Logic
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm font-semibold leading-snug" style={{ color: 'var(--color-ink)' }}>
+                  {heroSample.stem}
+                </p>
+
+                <div className="space-y-2">
+                  {heroSample.options.map((opt) => {
+                    const isPicked = heroAnswerPicked === opt.letter;
+                    const showResult = heroAnswerPicked !== null;
+                    const isCorrect = opt.isCorrect;
+
+                    let borderStyle = 'var(--color-border)';
+                    let bgStyle = 'var(--color-surface)';
+                    if (showResult && isCorrect) {
+                      borderStyle = 'var(--color-correct)';
+                      bgStyle = 'var(--color-correct-soft)';
+                    } else if (showResult && isPicked && !isCorrect) {
+                      borderStyle = 'var(--color-wrong)';
+                      bgStyle = 'var(--color-wrong-soft)';
+                    }
+
+                    return (
+                      <div key={opt.letter}>
+                        <button
+                          type="button"
+                          onClick={() => setHeroAnswerPicked(opt.letter)}
+                          className="w-full text-left p-2.5 rounded-lg border text-xs transition-colors flex items-start gap-2.5 cursor-pointer"
+                          style={{ borderColor: borderStyle, backgroundColor: bgStyle }}
+                        >
+                          <span
+                            className="w-5 h-5 rounded flex items-center justify-center font-bold text-[11px] shrink-0"
+                            style={{
+                              backgroundColor: 'var(--color-surface-2)',
+                              color: 'var(--color-ink)'
+                            }}
+                          >
+                            {opt.letter}
+                          </span>
+                          <span className="leading-relaxed" style={{ color: 'var(--color-ink)' }}>
+                            {opt.text}
+                          </span>
+                        </button>
+                        {showResult && (isPicked || isCorrect) && (
+                          <div
+                            className="mt-1 px-2.5 py-1.5 rounded text-[11px] leading-relaxed"
+                            style={{
+                              backgroundColor: 'var(--color-surface-2)',
+                              color: isCorrect ? 'var(--color-correct)' : 'var(--color-wrong)'
+                            }}
+                          >
+                            <strong>{isCorrect ? 'Correct choice:' : 'Eliminated distractor:'}</strong>{' '}
+                            <span style={{ color: 'var(--color-text-muted)' }}>{opt.explanation}</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {heroAnswerPicked && (
+                  <div className="pt-2 flex items-center justify-between text-xs">
+                    <span style={{ color: 'var(--color-text-soft)' }}>Interactive demonstration</span>
+                    <button
+                      type="button"
+                      onClick={() => setHeroAnswerPicked(null)}
+                      className="inline-flex items-center gap-1 font-semibold cursor-pointer"
+                      style={{ color: 'var(--color-accent)' }}
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Reset</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="editorial-rule mb-12" aria-hidden="true" />
+
+      {/* =========================================================================
+          GENERATOR STUDIO: Dedicated Workbench Card
+         ========================================================================= */}
+      <section id="generator-studio" className="rc-card p-5 sm:p-8 mb-14 scroll-mt-20">
         {/* Source Mode Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-5 mb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div
             className="w-full sm:w-auto grid grid-cols-2 sm:flex p-1 rounded-xl border"
             style={{
@@ -333,11 +517,10 @@ export default function HomePage() {
                 setInputMode('paste');
                 setErrorMsg(null);
               }}
-              className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer"
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer"
               style={{
                 backgroundColor: inputMode === 'paste' ? 'var(--color-surface)' : 'transparent',
-                color: inputMode === 'paste' ? 'var(--color-ink)' : 'var(--color-text-muted)',
-                boxShadow: inputMode === 'paste' ? 'var(--shadow-soft)' : 'none'
+                color: inputMode === 'paste' ? 'var(--color-ink)' : 'var(--color-text-muted)'
               }}
             >
               <FileText className="w-4 h-4 shrink-0" />
@@ -349,11 +532,10 @@ export default function HomePage() {
                 setInputMode('library');
                 setErrorMsg(null);
               }}
-              className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all cursor-pointer truncate"
+              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors cursor-pointer truncate"
               style={{
                 backgroundColor: inputMode === 'library' ? 'var(--color-surface)' : 'transparent',
-                color: inputMode === 'library' ? 'var(--color-ink)' : 'var(--color-text-muted)',
-                boxShadow: inputMode === 'library' ? 'var(--shadow-soft)' : 'none'
+                color: inputMode === 'library' ? 'var(--color-ink)' : 'var(--color-text-muted)'
               }}
             >
               <BookOpen className="w-4 h-4 shrink-0" />
@@ -362,7 +544,7 @@ export default function HomePage() {
           </div>
 
           {/* Exam Pattern Quick Toggle */}
-          <div className="flex flex-col xs:flex-row xs:items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col xs:flex-row xs:items-center gap-2.5 w-full sm:w-auto">
             <span className="text-xs font-medium shrink-0" style={{ color: 'var(--color-text-soft)' }}>
               Exam Pattern:
             </span>
@@ -376,10 +558,10 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setExamType('CAT')}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer text-center"
                 style={{
                   backgroundColor: examType === 'CAT' ? 'var(--color-primary)' : 'transparent',
-                  color: examType === 'CAT' ? '#fffcf6' : 'var(--color-text-muted)'
+                  color: examType === 'CAT' ? 'var(--mist-on-accent)' : 'var(--color-text-muted)'
                 }}
               >
                 CAT (4Q · +3/−1)
@@ -387,10 +569,10 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setExamType('GMAT')}
-                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer text-center"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer text-center"
                 style={{
                   backgroundColor: examType === 'GMAT' ? 'var(--color-primary)' : 'transparent',
-                  color: examType === 'GMAT' ? '#fffcf6' : 'var(--color-text-muted)'
+                  color: examType === 'GMAT' ? 'var(--mist-on-accent)' : 'var(--color-text-muted)'
                 }}
               >
                 GMAT (5Q · A–E)
@@ -399,17 +581,17 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Mode 1 & 2: Paste or URL Form */}
+        {/* Mode 1: Paste Article Form */}
         {inputMode !== 'library' ? (
-          <form onSubmit={handleGenerate} className="space-y-5">
+          <form onSubmit={handleGenerate} className="space-y-6">
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
-                  Paste Essay or Article Text (Aeon, Economist, New Yorker, Guardian, Research)
+                <label className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                  Paste Essay or Article Text
                 </label>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="text-xs" style={{ color: 'var(--color-text-soft)' }}>
-                    Quick fill:
+                    Sample presets:
                   </span>
                   {SAMPLE_PRESETS.map((preset) => (
                     <button
@@ -431,7 +613,7 @@ export default function HomePage() {
               </div>
 
               <div className="mb-3">
-                <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-muted)' }}>
                   Passage Title (Optional)
                 </label>
                 <input
@@ -453,10 +635,10 @@ export default function HomePage() {
                 value={pastedText}
                 onChange={(e) => setPastedText(e.target.value)}
                 placeholder="Paste any argumentative essay, philosophical reflection, science column, or economic commentary here (aim for 300–850 words for authentic CAT/GMAT passage pacing)..."
-                className="w-full p-3.5 sm:p-4 rounded-2xl text-base sm:text-sm leading-relaxed border outline-none transition-colors resize-y font-body"
+                className="w-full p-4 rounded-xl text-base sm:text-sm leading-relaxed border outline-none transition-colors resize-y font-body"
                 style={{
                   backgroundColor: 'var(--color-bg)',
-                  borderColor: 'var(--color-border-strong)',
+                  borderColor: 'var(--color-border)',
                   color: 'var(--color-ink)'
                 }}
               />
@@ -482,16 +664,16 @@ export default function HomePage() {
                       wordCount === 0
                         ? 'var(--color-text-soft)'
                         : wordCount < 80
-                        ? 'var(--color-warn)'
-                        : 'var(--color-correct)'
+                          ? 'var(--color-warn)'
+                          : 'var(--color-correct)'
                   }}
                 >
                   {wordCount} words{' '}
                   {wordCount === 0
                     ? '· Minimum 80 words (Best results with 400 to 800 words)'
                     : wordCount < 80
-                    ? `· Add ${80 - wordCount} more words (Best results with 400 to 800 words)`
-                    : '· Best results with 400 to 800 words'}
+                      ? `· Add ${80 - wordCount} more words`
+                      : '· Calibrated length'}
                 </span>
                 {pastedText && (
                   <button
@@ -509,10 +691,10 @@ export default function HomePage() {
                 )}
               </div>
 
-              {/* Topic Selector with auto-detection preselected */}
+              {/* Topic Selector */}
               <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                  <label className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>
                     Passage Topic {topicUserSelected ? '(Custom Selected)' : '(Auto-Detected)'}
                   </label>
                   {!topicUserSelected && pastedText.trim().length > 30 && (
@@ -532,9 +714,8 @@ export default function HomePage() {
                           setPastedTopic(cat);
                           setTopicUserSelected(true);
                         }}
-                        className={`px-3 py-2 rounded-xl text-xs font-semibold border text-left transition-all cursor-pointer truncate ${
-                          isSelected ? 'rc-chip-active' : 'rc-chip'
-                        }`}
+                        className={`px-3 py-2 rounded-xl text-xs font-semibold border text-left transition-colors cursor-pointer truncate ${isSelected ? 'rc-chip-active' : 'rc-chip'
+                          }`}
                       >
                         {cat}
                       </button>
@@ -546,7 +727,7 @@ export default function HomePage() {
 
             {/* Generation Engine & Calibration Controls */}
             <div
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-2xl border"
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl border"
               style={{
                 backgroundColor: 'var(--color-surface-2)',
                 borderColor: 'var(--color-border)'
@@ -560,7 +741,8 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => setProfileModalOpen(true)}
-                      className="text-[11px] text-[var(--color-primary)] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      className="text-[11px] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      style={{ color: 'var(--color-accent)' }}
                     >
                       <Key className="w-3 h-3" />
                       Add Gemini Key
@@ -577,9 +759,8 @@ export default function HomePage() {
                         setProfileModalOpen(true);
                       }
                     }}
-                    className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      engine === 'gemini' ? 'rc-chip-active' : 'rc-chip'
-                    }`}
+                    className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${engine === 'gemini' ? 'rc-chip-active' : 'rc-chip'
+                      }`}
                     title={hasGeminiKey ? 'Use Google Gemini AI' : 'Add Gemini API Key in Profile to enable'}
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -589,9 +770,8 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => setEngine('algorithm')}
-                    className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                      engine === 'algorithm' ? 'rc-chip-active' : 'rc-chip'
-                    }`}
+                    className={`flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${engine === 'algorithm' ? 'rc-chip-active' : 'rc-chip'
+                      }`}
                   >
                     <Cpu className="w-3.5 h-3.5" />
                     <span>Algorithm</span>
@@ -604,12 +784,12 @@ export default function HomePage() {
                       type="checkbox"
                       checked={doubleCheck}
                       onChange={(e) => setDoubleCheck(e.target.checked)}
-                      className="rounded accent-emerald-600 w-3.5 h-3.5 cursor-pointer"
+                      className="rounded accent-[var(--color-accent)] w-3.5 h-3.5 cursor-pointer"
                     />
                     <span className="text-[11px] font-semibold" style={{ color: 'var(--color-ink)' }}>
                       {hasGroqKey && useGroq
                         ? 'Double-check answers with Groq'
-                        : 'Double-check answers (recommended, uses extra requests)'}
+                        : 'Double-check answers (extra verification)'}
                     </span>
                   </label>
                 )}
@@ -618,7 +798,7 @@ export default function HomePage() {
               <div>
                 <label className="flex items-center gap-1.5 text-xs font-semibold mb-2" style={{ color: 'var(--color-text-muted)' }}>
                   <Sliders className="w-3.5 h-3.5" />
-                  <span>Rigor / Difficulty</span>
+                  <span>Rigor Level</span>
                 </label>
                 <div className="flex gap-1.5">
                   {(['Standard', 'Challenging', 'Brutal'] as DifficultyLevel[]).map((lvl) => (
@@ -626,9 +806,8 @@ export default function HomePage() {
                       key={lvl}
                       type="button"
                       onClick={() => setDifficulty(lvl)}
-                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold border cursor-pointer transition-all ${
-                        difficulty === lvl ? 'rc-chip-active' : 'rc-chip'
-                      }`}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold border cursor-pointer transition-colors ${difficulty === lvl ? 'rc-chip-active' : 'rc-chip'
+                        }`}
                     >
                       {lvl}
                     </button>
@@ -646,7 +825,7 @@ export default function HomePage() {
                   className="w-full px-3 py-1.5 rounded-lg text-xs font-medium border outline-none"
                   style={{
                     backgroundColor: 'var(--color-surface)',
-                    borderColor: 'var(--color-border-strong)',
+                    borderColor: 'var(--color-border)',
                     color: 'var(--color-ink)'
                   }}
                 >
@@ -676,15 +855,15 @@ export default function HomePage() {
               <div className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
                 {examType === 'CAT' ? (
                   <span>
-                    Generates <strong>4 MCQs × 4 options</strong> · CAT marking (+3 / −1 / 0) · 8m target timer
+                    Generates <strong>4 MCQs × 4 options</strong> · CAT scoring (+3 / −1 / 0) · 8-minute target pace
                   </span>
                 ) : (
                   <span>
-                    Generates <strong>5 MCQs × 5 options (A–E)</strong> · GMAT Focus Verbal · 10m target timer
+                    Generates <strong>5 MCQs × 5 options (A–E)</strong> · GMAT Focus scoring · 10-minute target pace
                   </span>
                 )}
                 {' · '}
-                <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+                <span className="font-medium" style={{ color: 'var(--color-accent)' }}>
                   Engine: {engine === 'gemini' ? 'Gemini AI (BYOK)' : 'Rule-based Algorithm'}
                 </span>
               </div>
@@ -692,7 +871,7 @@ export default function HomePage() {
               <button
                 type="submit"
                 disabled={generating}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base sm:text-sm font-semibold rc-btn-primary cursor-pointer shadow-md"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold rc-btn-primary cursor-pointer transition-colors"
               >
                 {generating ? (
                   <>
@@ -703,7 +882,6 @@ export default function HomePage() {
                   <>
                     <Sparkles className="w-4 h-4" />
                     <span>Generate {examType} RC Test</span>
-                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
@@ -726,9 +904,8 @@ export default function HomePage() {
                   key={topic}
                   type="button"
                   onClick={() => setSelectedTopic(topic)}
-                  className={`px-3 py-1.5 text-xs rounded-full cursor-pointer ${
-                    selectedTopic === topic ? 'rc-chip-active' : 'rc-chip'
-                  }`}
+                  className={`px-3 py-1.5 text-xs rounded-full cursor-pointer transition-colors ${selectedTopic === topic ? 'rc-chip-active' : 'rc-chip'
+                    }`}
                 >
                   {topic}
                 </button>
@@ -740,11 +917,11 @@ export default function HomePage() {
                 Loading curated essays…
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredLibrary.slice(0, 6).map((test) => (
                   <div
                     key={test.id}
-                    className="p-4 rounded-2xl border flex flex-col justify-between gap-3 transition-all hover:border-[var(--color-primary)]"
+                    className="p-4 rounded-xl border flex flex-col justify-between gap-3 transition-colors hover:border-[var(--color-accent)]"
                     style={{
                       backgroundColor: 'var(--color-bg)',
                       borderColor: 'var(--color-border)'
@@ -752,11 +929,11 @@ export default function HomePage() {
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--color-primary)' }}>
+                        <span className="text-xs font-semibold" style={{ color: 'var(--color-accent)' }}>
                           {test.topic}
                         </span>
                         <span
-                          className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                          className="px-2 py-0.5 rounded text-[11px] font-medium"
                           style={{
                             backgroundColor: 'var(--color-surface-2)',
                             color: 'var(--color-text-muted)'
@@ -778,11 +955,10 @@ export default function HomePage() {
                       </span>
                       <Link
                         to={`/test/${test.id}`}
-                        className="inline-flex items-center gap-1 font-semibold"
-                        style={{ color: 'var(--color-primary)' }}
+                        className="font-semibold transition-colors"
+                        style={{ color: 'var(--color-accent)' }}
                       >
-                        <span>Start Set</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        Start Test Set
                       </Link>
                     </div>
                   </div>
@@ -791,180 +967,59 @@ export default function HomePage() {
             )}
 
             <div className="mt-5 text-center">
-              <Link to="/library" className="inline-flex items-center gap-1.5 text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
-                <span>Browse full Article Library &amp; topic filters</span>
-                <ArrowRight className="w-4 h-4" />
+              <Link to="/library" className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: 'var(--color-accent)' }}>
+                <span>Browse full Article Library with filters</span>
               </Link>
             </div>
           </div>
         )}
       </section>
 
-      {/* Value Props Row */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
-        <div className="rc-card p-5">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
-            <BookOpen className="w-4 h-4" />
+      {/* =========================================================================
+          EDITORIAL METHODOLOGY: Narrative Split (Replaces cookie-cutter icon cards)
+         ========================================================================= */}
+      <section className="mb-20 pt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          <div className="lg:col-span-5 space-y-3">
+            <h2 className="font-display text-2xl sm:text-3xl font-semibold leading-tight" style={{ color: 'var(--color-ink)' }}>
+              Built for deliberate RC mastery
+            </h2>
+            <p className="text-base leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+              Standard prep materials exhaust their usefulness once you remember the questions. RCgen
+              turns authentic essays into calibrated test sets that demand active reasoning.
+            </p>
           </div>
-          <h2 className="font-display font-semibold text-lg mb-1.5" style={{ color: 'var(--color-ink)' }}>
-            Practice that never runs out
-          </h2>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-            Every static RC question bank is finite—work through it long enough and you recognize the answers. Paste any unfamiliar Aeon or Economist essay and test real comprehension.
-          </p>
-        </div>
 
-        <div className="rc-card p-5">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}>
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-          <h2 className="font-display font-semibold text-lg mb-1.5" style={{ color: 'var(--color-ink)' }}>
-            Per-option explanations
-          </h2>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-            Knowing the right letter is half the skill. Every option includes an explicit diagnosis—why the key holds and why each distractor fails (reversal, overreach, narrow detail).
-          </p>
-        </div>
+          <div className="lg:col-span-7 space-y-6">
+            <div className="space-y-1.5 pb-5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+              <h3 className="font-display font-semibold text-lg" style={{ color: 'var(--color-ink)' }}>
+                Practice with unfamiliar material
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                Static question banks train pattern recognition rather than reading ability. Generating sets from fresh long-form essays forces genuine passage comprehension under timed conditions.
+              </p>
+            </div>
 
-        <div className="rc-card p-5">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: 'var(--color-warn-soft)', color: 'var(--color-warn)' }}>
-            <Trophy className="w-4 h-4" />
+            <div className="space-y-1.5 pb-5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+              <h3 className="font-display font-semibold text-lg" style={{ color: 'var(--color-ink)' }}>
+                Explicit distractor diagnosis
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                Knowing the correct letter is half the learning. Every option includes an explanation of why the correct key holds and why each trap fails: scope expansion, direct reversal, or extreme assertion.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-display font-semibold text-lg" style={{ color: 'var(--color-ink)' }}>
+                Structured past slots &amp; pace tracking
+              </h3>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+                Explore the structured 60-slot CAT 2021–2025 past papers catalog, drill speed reading sprints, and evaluate question-type accuracy on your private report card.
+              </p>
+            </div>
           </div>
-          <h2 className="font-display font-semibold text-lg mb-1.5" style={{ color: 'var(--color-ink)' }}>
-            CAT PYQ Catalog &amp; Analytics
-          </h2>
-          <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
-            Explore the structured 60-slot CAT 2021–2025 past papers catalog, drill speed reading, and track weak question types on your local Report Card.
-          </p>
         </div>
       </section>
-
-      {/* Embedded Interactive Sample CAT RC Set ("The Attention Economy") */}
-      {featuredSample && sampleFirstQ && (
-        <section className="rc-card p-6 sm:p-8 mb-14">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b" style={{ borderColor: 'var(--color-border)' }}>
-            <div>
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold mb-1.5">
-                <span style={{ color: 'var(--color-primary)' }}>{featuredSample.topic}</span>
-                <span style={{ color: 'var(--color-text-soft)' }}>·</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{featuredSample.questions.length} questions</span>
-                <span style={{ color: 'var(--color-text-soft)' }}>·</span>
-                <span style={{ color: 'var(--color-text-muted)' }}>{featuredSample.word_count} words</span>
-              </div>
-              <h2 className="font-display text-2xl sm:text-3xl font-semibold" style={{ color: 'var(--color-ink)' }}>
-                Try a sample CAT RC set: {featuredSample.title}
-              </h2>
-            </div>
-            <Link
-              to={`/test/${featuredSample.id}`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold rc-btn-primary shrink-0"
-            >
-              <Clock className="w-4 h-4" />
-              <span>Open Full Set in Exam Player</span>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
-            {/* Excerpt */}
-            <div className="lg:col-span-7 space-y-3.5 passage-prose text-[15.5px]" style={{ color: 'var(--color-text)' }}>
-              {featuredSample.passage_paragraphs.slice(0, 3).map((para, i) => (
-                <p key={i} id={`sample-p-${i + 1}`} data-paragraph-index={i}>
-                  {para}
-                </p>
-              ))}
-              {featuredSample.passage_paragraphs.length > 3 && (
-                <p className="text-xs font-sans italic pt-1" style={{ color: 'var(--color-text-soft)' }}>
-                  + {featuredSample.passage_paragraphs.length - 3} more paragraphs in the full split-screen exam player…
-                </p>
-              )}
-            </div>
-
-            {/* Interactive Question 1 Preview */}
-            <div
-              className="lg:col-span-5 p-5 rounded-2xl border flex flex-col justify-between"
-              style={{
-                backgroundColor: 'var(--color-surface-2)',
-                borderColor: 'var(--color-border)'
-              }}
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-semibold mb-2">
-                  <span style={{ color: 'var(--color-text-soft)' }}>QUESTION 1 OF {featuredSample.questions.length}</span>
-                  <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
-                    {sampleFirstQ.type}
-                  </span>
-                </div>
-                <p className="font-semibold text-sm sm:text-base mb-4" style={{ color: 'var(--color-ink)' }}>
-                  {sampleFirstQ.stem}
-                </p>
-
-                <div className="space-y-2.5">
-                  {sampleFirstQ.options.map((opt) => {
-                    const isPicked = previewSelected === opt.letter;
-                    const isRight = opt.letter === sampleFirstQ.correctLetter;
-                    const showResult = previewSelected !== null;
-
-                    let borderCol = 'var(--color-border-strong)';
-                    let bgCol = 'var(--color-surface)';
-                    if (showResult && isRight) {
-                      borderCol = 'var(--color-correct)';
-                      bgCol = 'var(--color-correct-soft)';
-                    } else if (showResult && isPicked && !isRight) {
-                      borderCol = 'var(--color-wrong)';
-                      bgCol = 'var(--color-wrong-soft)';
-                    }
-
-                    return (
-                      <div key={opt.letter}>
-                        <button
-                          type="button"
-                          onClick={() => setPreviewSelected(opt.letter)}
-                          className="w-full text-left p-3 rounded-xl border text-xs sm:text-sm transition-all flex items-start gap-2.5 cursor-pointer"
-                          style={{ borderColor: borderCol, backgroundColor: bgCol }}
-                        >
-                          <span
-                            className="w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                            style={{
-                              backgroundColor: 'var(--color-bg)',
-                              color: 'var(--color-ink)'
-                            }}
-                          >
-                            {opt.letter}
-                          </span>
-                          <span style={{ color: 'var(--color-text)' }}>{opt.text}</span>
-                        </button>
-                        {showResult && (isPicked || isRight) && (
-                          <p
-                            className="mt-1.5 px-3 py-2 rounded-lg text-xs leading-relaxed"
-                            style={{
-                              backgroundColor: 'var(--color-bg)',
-                              color: isRight ? 'var(--color-correct)' : 'var(--color-wrong)'
-                            }}
-                          >
-                            <strong>
-                              {opt.letter} — {isRight ? 'correct' : 'wrong'}:
-                            </strong>{' '}
-                            <span style={{ color: 'var(--color-text-muted)' }}>{opt.explanation}</span>
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mt-5 pt-3 border-t flex items-center justify-between text-xs" style={{ borderColor: 'var(--color-border)' }}>
-                <span style={{ color: 'var(--color-text-soft)' }}>
-                  {previewSelected ? 'Click any option to compare explanations' : 'Pick an option for instant feedback'}
-                </span>
-                <Link to={`/test/${featuredSample.id}`} className="font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
-                  All {featuredSample.questions.length} questions →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
     </div>
   );
 }

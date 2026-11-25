@@ -322,7 +322,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           <div className="space-y-2.5 p-4 rounded-xl border" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-2)' }}>
             <div className="flex items-center justify-between gap-2">
               <label className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--color-ink)' }}>
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
                 <span>2. Google Gemini API Key</span>
               </label>
               {hasGeminiKey ? (
@@ -401,8 +401,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <div
                 className={`p-2.5 rounded-lg text-xs leading-relaxed border ${
                   geminiTestMsg.ok
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : 'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
+                    ? 'border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-ink)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-ink)]'
                 }`}
               >
                 <p>{geminiTestMsg.text}</p>
@@ -452,7 +452,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           <div className="space-y-2.5 p-4 rounded-xl border" style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-surface-2)' }}>
             <div className="flex items-center justify-between gap-2">
               <label className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: 'var(--color-ink)' }}>
-                <Zap className="w-3.5 h-3.5 text-blue-500" />
+                <Zap className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
                 <span>3. Groq API Key (Optional Reviewer)</span>
               </label>
               {hasGroqKey ? (
@@ -540,12 +540,12 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <div
                 className="p-3 rounded-xl border text-xs leading-relaxed space-y-1"
                 style={{
-                  backgroundColor: 'rgba(245, 158, 11, 0.08)',
-                  borderColor: 'rgba(245, 158, 11, 0.35)',
+                  backgroundColor: 'var(--color-surface-2)',
+                  borderColor: 'var(--color-border)',
                   color: 'var(--color-ink)'
                 }}
               >
-                <div className="font-semibold flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
+                <div className="font-semibold flex items-center gap-1.5" style={{ color: 'var(--color-accent)' }}>
                   <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                   <span>Session Notice</span>
                 </div>
@@ -557,8 +557,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <div
                 className={`p-2.5 rounded-lg text-xs leading-relaxed border ${
                   groqTestMsg.ok
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                    : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                    ? 'border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-ink)]'
+                    : 'border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-ink)]'
                 }`}
               >
                 <p>{groqTestMsg.text}</p>
@@ -576,7 +576,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 type="checkbox"
                 checked={inputUseGroq}
                 onChange={(e) => setInputUseGroq(e.target.checked)}
-                className="rounded accent-emerald-600 w-4 h-4 cursor-pointer"
+                className="rounded accent-[var(--color-accent)] w-4 h-4 cursor-pointer"
               />
               <span className="text-xs font-semibold" style={{ color: 'var(--color-ink)' }}>
                 Use Groq to double-check answers
@@ -606,7 +606,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                   </div>
 
                   {modelNotice && (
-                    <div className="p-2.5 rounded-lg text-xs border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                    <div className="p-2.5 rounded-lg text-xs border border-[var(--color-border)] bg-[var(--color-surface-2)] text-[var(--color-ink)]">
                       {modelNotice}
                     </div>
                   )}
@@ -691,7 +691,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
         {/* Danger Zone: Remove Keys & Erase All Data */}
         <div className="pt-4 border-t space-y-3" style={{ borderColor: 'var(--color-border)' }}>
-          <p className="text-xs font-semibold text-red-500 uppercase tracking-wider">Danger Zone</p>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-ink)' }}>Manage Stored Data</p>
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -700,9 +700,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                   type="button"
                   onClick={handleRemoveGeminiKey}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border cursor-pointer transition-all ${
-                    confirmRemoveGemini ? 'bg-red-600 text-white border-red-600' : 'hover:opacity-80'
+                    confirmRemoveGemini ? 'bg-[var(--color-ink)] text-[var(--color-bg)] border-[var(--color-ink)]' : 'hover:opacity-80'
                   }`}
-                  style={!confirmRemoveGemini ? { borderColor: 'var(--color-border)', color: 'var(--color-wrong)' } : {}}
+                  style={!confirmRemoveGemini ? { borderColor: 'var(--color-border)', color: 'var(--color-ink)' } : {}}
                 >
                   {confirmRemoveGemini ? 'Confirm: Remove Gemini Key' : 'Remove Gemini Key'}
                 </button>
@@ -713,9 +713,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                   type="button"
                   onClick={handleRemoveGroqKey}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold border cursor-pointer transition-all ${
-                    confirmRemoveGroq ? 'bg-red-600 text-white border-red-600' : 'hover:opacity-80'
+                    confirmRemoveGroq ? 'bg-[var(--color-ink)] text-[var(--color-bg)] border-[var(--color-ink)]' : 'hover:opacity-80'
                   }`}
-                  style={!confirmRemoveGroq ? { borderColor: 'var(--color-border)', color: 'var(--color-wrong)' } : {}}
+                  style={!confirmRemoveGroq ? { borderColor: 'var(--color-border)', color: 'var(--color-ink)' } : {}}
                 >
                   {confirmRemoveGroq ? 'Confirm: Remove Groq Key' : 'Remove Groq Key'}
                 </button>
@@ -726,14 +726,14 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               type="button"
               onClick={handleEraseAll}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border cursor-pointer transition-all ${
-                confirmErase ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'hover:opacity-80'
+                confirmErase ? 'bg-[var(--color-ink)] text-[var(--color-bg)] border-[var(--color-ink)]' : 'hover:opacity-80'
               }`}
               style={
                 !confirmErase
                   ? {
                       backgroundColor: 'transparent',
-                      borderColor: 'var(--color-wrong)',
-                      color: 'var(--color-wrong)',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-ink)',
                     }
                   : {}
               }

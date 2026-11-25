@@ -273,3 +273,220 @@ html, body {
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   THEME: Mist & Ink (Scoped to .theme-ink-wash only)
+   Light:
+     bg #F3F5F4 | surface #FFFFFF | surface-raised #E9EDEC | border #D5DAE0
+     text #1B2430 | muted #5B6676 | accent #2B4C7E | on-accent #FFFFFF
+     marker #C8963E (decoration only, never text) | success #2F7D5B | error #B4443C
+   Dark:
+     bg #121821 | surface #1A2230 | surface-raised #222C3C | border #2E3A4D
+     text #E9EDF2 | muted #9AA6B8 | accent #8FB0E8 | on-accent #121821
+     marker #E3B65C | success #5FBF92 | error #E58078
+   ========================================================================== */
+
+.theme-ink-wash,
+html.theme-ink-wash {
+  /* Core Palette Tokens - Light */
+  --mist-bg: #F3F5F4;
+  --mist-surface: #FFFFFF;
+  --mist-surface-raised: #E9EDEC;
+  --mist-border: #D5DAE0;
+  --mist-border-strong: #B0B9C4;
+  --mist-text: #1B2430;
+  --mist-muted: #5B6676;
+  --mist-accent: #2B4C7E;
+  --mist-accent-hover: #1F385C;
+  --mist-on-accent: #FFFFFF;
+  --mist-marker: #C8963E;
+  --mist-success: #2F7D5B;
+  --mist-error: #B4443C;
+
+  /* Overrides for existing --color-* tokens on non-protected pages */
+  --color-bg: #F3F5F4;
+  --color-bg-tint: #E9EDEC;
+  --color-surface: #FFFFFF;
+  --color-surface-2: #E9EDEC;
+  --color-border: #D5DAE0;
+  --color-border-strong: #B0B9C4;
+  --color-ink: #1B2430;
+  --color-text: #1B2430;
+  --color-text-muted: #5B6676;
+  --color-text-soft: #5B6676;
+
+  /* Primary button: accent with on-accent text */
+  --color-primary: #2B4C7E;
+  --color-primary-strong: #1F385C;
+  --color-primary-soft: rgba(43, 76, 126, 0.10);
+
+  /* Accent: deep blue */
+  --color-accent: #2B4C7E;
+  --color-accent-soft: rgba(43, 76, 126, 0.10);
+
+  /* States */
+  --color-correct: #2F7D5B;
+  --color-correct-soft: rgba(47, 125, 91, 0.12);
+  --color-wrong: #B4443C;
+  --color-wrong-soft: rgba(180, 68, 60, 0.12);
+  --color-warn: #C8963E;
+  --color-warn-soft: rgba(200, 150, 62, 0.14);
+  --color-gold: #C8963E;
+  --marker: #C8963E;
+
+  /* Subtle, calm, flat card shadows */
+  --shadow-soft: none;
+  --shadow-lift: 0 4px 16px rgba(27, 36, 48, 0.08);
+}
+
+/* Dark mode for Mist & Ink */
+[data-theme="dark"] .theme-ink-wash,
+html[data-theme="dark"].theme-ink-wash {
+  --mist-bg: #121821;
+  --mist-surface: #1A2230;
+  --mist-surface-raised: #222C3C;
+  --mist-border: #2E3A4D;
+  --mist-border-strong: #405068;
+  --mist-text: #E9EDF2;
+  --mist-muted: #9AA6B8;
+  --mist-accent: #8FB0E8;
+  --mist-accent-hover: #A8C4F0;
+  --mist-on-accent: #121821;
+  --mist-marker: #E3B65C;
+  --mist-success: #5FBF92;
+  --mist-error: #E58078;
+
+  --color-bg: #121821;
+  --color-bg-tint: #222C3C;
+  --color-surface: #1A2230;
+  --color-surface-2: #222C3C;
+  --color-border: #2E3A4D;
+  --color-border-strong: #405068;
+  --color-ink: #E9EDF2;
+  --color-text: #E9EDF2;
+  --color-text-muted: #9AA6B8;
+  --color-text-soft: #9AA6B8;
+
+  /* Primary button: light blue accent with dark on-accent text */
+  --color-primary: #8FB0E8;
+  --color-primary-strong: #A8C4F0;
+  --color-primary-soft: rgba(143, 176, 232, 0.14);
+
+  --color-accent: #8FB0E8;
+  --color-accent-soft: rgba(143, 176, 232, 0.14);
+
+  --color-correct: #5FBF92;
+  --color-correct-soft: rgba(95, 191, 146, 0.16);
+  --color-wrong: #E58078;
+  --color-wrong-soft: rgba(229, 128, 120, 0.16);
+  --color-warn: #E3B65C;
+  --color-warn-soft: rgba(227, 182, 92, 0.16);
+  --color-gold: #E3B65C;
+  --marker: #E3B65C;
+
+  --shadow-soft: none;
+  --shadow-lift: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* Scoped UI Overrides inside .theme-ink-wash */
+.theme-ink-wash .rc-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.theme-ink-wash .rc-card-elevated {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lift);
+}
+
+.theme-ink-wash .rc-btn-primary {
+  background-color: var(--color-primary);
+  color: var(--mist-on-accent);
+  border: 1px solid var(--color-primary);
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+[data-theme="dark"] .theme-ink-wash .rc-btn-primary {
+  background-color: var(--color-primary);
+  color: var(--mist-on-accent);
+  border: 1px solid var(--color-primary);
+}
+
+.theme-ink-wash .rc-btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-strong);
+}
+
+.theme-ink-wash .rc-btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.theme-ink-wash .rc-btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.theme-ink-wash .rc-chip {
+  background-color: var(--color-surface-2);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+}
+
+.theme-ink-wash .rc-chip-active {
+  background-color: var(--color-primary);
+  color: var(--mist-on-accent);
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] .theme-ink-wash .rc-chip-active {
+  background-color: var(--color-primary);
+  color: var(--mist-on-accent);
+  border-color: var(--color-primary);
+}
+
+/* Focus rings with accent blue */
+.theme-ink-wash button:focus-visible,
+.theme-ink-wash a:focus-visible,
+.theme-ink-wash input:focus-visible,
+.theme-ink-wash textarea:focus-visible,
+.theme-ink-wash select:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Editorial Hero & Sample Components (NEW CLASSES - never .passage-prose or .rc-card) */
+.theme-ink-wash .editorial-sample-box {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.theme-ink-wash .editorial-sample-excerpt {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  line-height: 1.78;
+  color: var(--color-ink);
+}
+
+.theme-ink-wash .editorial-sample-question {
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.theme-ink-wash .editorial-rule {
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+.theme-ink-wash .editorial-marker {
+  color: var(--marker);
+}
+

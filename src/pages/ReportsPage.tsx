@@ -96,12 +96,6 @@ export default function ReportsPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <span
-            className="inline-block text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-2.5"
-            style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}
-          >
-            Diagnostic Analytics
-          </span>
           <h1 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--color-ink)' }}>
             {displayName}&apos;s VARC Report Card
           </h1>
@@ -122,7 +116,7 @@ export default function ReportsPage() {
             No completed RC sets yet
           </h2>
           <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--color-text-muted)' }}>
-            Take a passage from the Library or generate a test from any article to unlock question-type accuracy diagnostics.
+            Take a passage from the Library or generate a test from any article to view question-type accuracy diagnostics.
           </p>
           <div className="flex justify-center gap-3 pt-2">
             <Link to="/" className="px-5 py-2.5 rounded-xl text-sm font-semibold rc-btn-primary">

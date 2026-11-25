@@ -48,33 +48,25 @@ export default function PyqPage() {
       <div className="mb-8">
         <div className="flex flex-wrap items-center gap-2 mb-3">
           <span
-            className="inline-block text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
-            style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}
-          >
-            CAT VARC · Previous Year Questions Catalog
-          </span>
-          <span
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border"
             style={{
               backgroundColor: 'var(--color-surface)',
-              borderColor: 'var(--color-border-strong)',
+              borderColor: 'var(--color-border)',
               color: 'var(--color-ink)',
             }}
           >
-            <Clock className="w-3.5 h-3.5" style={{ color: 'var(--color-primary)' }} />
+            <Clock className="w-3.5 h-3.5" style={{ color: 'var(--color-accent)' }} />
             <span>
-              {authoredCount} of {totalCount} passages added
+              {authoredCount} of {totalCount} past slots indexed
             </span>
           </span>
         </div>
 
-        <h1 className="font-display text-3xl sm:text-4xl font-semibold mb-3" style={{ color: 'var(--color-ink)' }}>
+        <h1 className="font-display text-3xl sm:text-4xl font-semibold mb-2" style={{ color: 'var(--color-ink)' }}>
           CAT RC PYQ Catalog ({availableYears[availableYears.length - 1] || 2021}–{availableYears[0] || 2025})
         </h1>
         <p className="text-sm sm:text-base leading-relaxed max-w-3xl" style={{ color: 'var(--color-text-muted)' }}>
-          A structured catalog of CAT Reading Comprehension passage slots. You (the admin) can add passages, questions,
-          and per-option explanations directly to <code>src/data/pyq.json</code>. Authored passages launch instantly in
-          the exam player.
+          A structured catalog of CAT Reading Comprehension passage slots. Practice past slot papers under timed exam conditions.
         </p>
       </div>
 

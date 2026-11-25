@@ -60,14 +60,14 @@ export default function LiveArenaPage() {
         <section className="rc-card-elevated p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
               style={{
-                backgroundColor: 'var(--color-correct-soft)',
-                color: 'var(--color-correct)',
+                backgroundColor: 'var(--color-primary-soft)',
+                color: 'var(--color-primary)',
               }}
             >
               <Flame className="w-3.5 h-3.5" />
-              DAILY PICK RC · {activeTest.exam_type}
+              Daily featured set · {activeTest.exam_type}
             </span>
 
             <div

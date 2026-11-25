@@ -14,16 +14,10 @@ export default function GuidesPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-16">
       <div className="mb-8">
-        <span
-          className="inline-block text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-2.5"
-          style={{ backgroundColor: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}
-        >
-          PracticeRC Playbooks
-        </span>
-        <h1 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--color-ink)' }}>
-          CAT VARC &amp; GMAT Verbal Strategy Guides
+        <h1 className="font-display text-3xl sm:text-4xl font-semibold mb-2" style={{ color: 'var(--color-ink)' }}>
+          Strategy &amp; Technique Guides
         </h1>
-        <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-sm sm:text-base" style={{ color: 'var(--color-text-muted)' }}>
           Field-tested frameworks for active argument mapping, distractor elimination, and exam-day pacing.
         </p>
       </div>

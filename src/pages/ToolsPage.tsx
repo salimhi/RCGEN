@@ -113,15 +113,12 @@ export default function ToolsPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-8 pb-16">
       <div className="mb-8">
-        <span
-          className="inline-block text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full mb-2.5"
-          style={{ backgroundColor: 'var(--color-accent-soft)', color: 'var(--color-accent)' }}
-        >
-          Free VARC Diagnostic Utilities
-        </span>
-        <h1 className="font-display text-3xl sm:text-4xl font-semibold" style={{ color: 'var(--color-ink)' }}>
+        <h1 className="font-display text-3xl sm:text-4xl font-semibold mb-2" style={{ color: 'var(--color-ink)' }}>
           VARC Prep Tools
         </h1>
+        <p className="text-sm sm:text-base" style={{ color: 'var(--color-text-muted)' }}>
+          Interactive pacing and score projection tools grounded against empirical CAT VARC score-versus-percentile curves.
+        </p>
       </div>
 
       {/* Tool Switcher */}

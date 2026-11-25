@@ -21,8 +21,8 @@ export default function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 pb-10 border-b" style={{ borderColor: 'var(--color-border)' }}>
           <div>
             <h2
-              className="text-xs font-semibold uppercase tracking-wider mb-3"
-              style={{ color: 'var(--color-text-soft)' }}
+              className="text-xs font-semibold mb-3"
+              style={{ color: 'var(--color-ink)' }}
             >
               RC Practice
             </h2>
@@ -57,8 +57,8 @@ export default function Footer() {
 
           <div>
             <h2
-              className="text-xs font-semibold uppercase tracking-wider mb-3"
-              style={{ color: 'var(--color-text-soft)' }}
+              className="text-xs font-semibold mb-3"
+              style={{ color: 'var(--color-ink)' }}
             >
               Previous Year Papers
             </h2>
@@ -88,8 +88,8 @@ export default function Footer() {
 
           <div>
             <h2
-              className="text-xs font-semibold uppercase tracking-wider mb-3"
-              style={{ color: 'var(--color-text-soft)' }}
+              className="text-xs font-semibold mb-3"
+              style={{ color: 'var(--color-ink)' }}
             >
               Free Tools
             </h2>
@@ -114,8 +114,8 @@ export default function Footer() {
 
           <div>
             <h2
-              className="text-xs font-semibold uppercase tracking-wider mb-3"
-              style={{ color: 'var(--color-text-soft)' }}
+              className="text-xs font-semibold mb-3"
+              style={{ color: 'var(--color-ink)' }}
             >
               Guides &amp; Strategy
             </h2>
@@ -146,7 +146,7 @@ export default function Footer() {
 
         <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs" style={{ color: 'var(--color-text-soft)' }}>
           <p>
-            © 2026 PracticeRC — Free CAT &amp; GMAT Reading Comprehension practice generated from any article.
+            © 2026 RCgen — Free CAT &amp; GMAT Reading Comprehension practice generated from any article.
           </p>
           <div className="flex items-center gap-4">
             <button
@@ -159,7 +159,7 @@ export default function Footer() {
                 color: 'var(--color-text-muted)'
               }}
             >
-              {theme === 'dark' ? '☀ Switch to Parchment Light' : '☾ Switch to Forest Dark'}
+              {theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
             </button>
           </div>
         </div>
